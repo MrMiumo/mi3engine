@@ -1,0 +1,62 @@
+package io.github.mrmiumo.mi3engine;
+
+import io.github.mrmiumo.mi3engine.RenderEngine.Vec2;
+import static io.github.mrmiumo.mi3engine.Camera.*;
+
+/**
+ * Represent a triangle that compose a face, defines by 3 vertex, a
+ * texture and an average depth. The triangle is able to compute its
+ * light intensity using {@link Camera}.
+ * @param a the vertex of the first corner
+ * @param b the vertex of the second corner
+ * @param c the vertex of the third corner
+ * @param texture the image to apply on the triangle
+ * @param intensity the amount of light received by this face (computed automatically)
+ * @param opaque whether the texture has transparency or not
+ * @param avgDepth average depth of the triangle
+ */
+record Triangle(TriVertex a, TriVertex b, TriVertex c, Texture texture, double intensity, boolean opaque, double avgDepth) {
+
+    /**
+     * Creates a new triangle from the given screen vertices, z depths,
+     * triangle points and the texture.
+     * @param screenVerts the list of vertices of the original rectangle
+     * @param depths the list of depths
+     * @param points the points of the triangle to use
+     * @param texture the texture to apply
+     * @return the triangle
+     */
+    public static Triangle from(Vec2[] screenVerts, double[] depths, int[] points, Texture texture) {
+        var a = TriVertex.from(screenVerts, depths, points[0]);
+        var b = TriVertex.from(screenVerts, depths, points[1]);
+        var c = TriVertex.from(screenVerts, depths, points[2]);
+
+        return new Triangle(
+            a, b, c,
+            texture,
+            computeIntensity(a, b, c),
+            !texture.isTransparent(),
+            (a.depth() + b.depth() + c.depth()) / 3.0
+        );
+    }
+
+    /**
+     * Computes the normal vector (direction of the face) to
+     * compute the corresponding light intensity of the face.
+     * @return the intensity of the face
+     */
+    private static double computeIntensity(TriVertex a, TriVertex b, TriVertex c) {
+        /* Computes the faceNormal */
+        Vec ab = b.vec().sub(a.vec());
+        Vec ac = c.vec().sub(a.vec());
+        var normal = ab.cross(ac).normalize();
+
+        /* Computes the light from the normal */
+        double diffuseFactor = normal.dot(LIGHT_DIRECTION);
+        double clampedDiffuseFactor = Math.max(0, diffuseFactor);
+        double finalIntensity = AMBIENT + DIFFUSE * clampedDiffuseFactor;
+        if (normal.y() < 0) finalIntensity /= 1 -normal.y();
+
+        return Math.min(1.0, finalIntensity);
+    }
+}
