@@ -1,5 +1,5 @@
 # Miumo's Minimalist Minecraft rendering engine
-This is a very basic and lightweight rendering engine written in Java intended to render Minecraft elements such as resource pack models.
+**Mi<sup>3</sup> Engine** is a very basic and lightweight rendering engine written in Java intended to render Minecraft elements such as resource pack models.
 ## Performances
 Performances are not adapted to video or live preview but are still suitable for efficient image generation. Generating an image of 1287x1287 for a large model containing 400 cubes takes about 100ms (depends of the hardware of course).
 ## Usage
@@ -74,6 +74,10 @@ BufferedImage output = engine.render();
 /* Step 6. Save the image */
 ImageIO.write(output, "PNG", Files.newOutputStream("MyImage.png"));
 ```
-
+**IMPORTANT**: When using the `ModelParser`, you must define a property called 'default.minecraft.pack' in your `application.properties` file to give the path to a folder corresponding to the default minecraft resource pack. If your project does not have such a file yet, add it in the `src/main/resources` folder and add the line:
+```properties
+default.minecraft.pack=/myApp/assets/minecraftDefaultTextures
+```
+This configuration is important since most models rely on default game's textures and those are not embedded in the engine.
 ## Future
 A player module is planned to be added to create custom poses and render skins!

@@ -1,5 +1,6 @@
 package io.github.mrmiumo.mi3engine;
 
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.util.Random;
@@ -18,6 +19,9 @@ import static io.github.mrmiumo.mi3engine.RenderUtils.clamp;
  *     DO NOT SET THIS VALUE BY YOURSELF
  */
 record Texture(BufferedImage source, int[] pixels, float x, float y, float w, float h, int rotate, boolean isTransparent) {
+
+    /** Iterator over each default texture colorSet available */
+    private static int nextColorSet = 0;
 
     /**
      * Creates a new texture from the given image and cut the given
@@ -90,6 +94,50 @@ record Texture(BufferedImage source, int[] pixels, float x, float y, float w, fl
         var tx = (int)clamp(x + (int)(u * w), 0, source.getWidth() - 1);
         var ty = (int)clamp(y + (int)(v * h), 0, source.getHeight() - 1);
         return pixels[ty * source.getWidth() + tx];
+    }
+
+    /**
+     * Generates a random colored default texture
+     * @return the default texture
+     */
+    public static Texture generateDefault() {
+        final var colorsSets = new int[][]{
+            new int[]{ 0x62cc82, 0x5abb78, 0x58b675, 0x50a66a },      // Green
+            new int[]{ 0xcc84aa, 0xbb799c, 0xb67698, 0xa66c8b },      // Pink
+            new int[]{ 0xcc7c79, 0xbb726f, 0xb66f6c, 0xa66562 },      // Red
+            new int[]{ 0x81bccc, 0x77acbb, 0x74a8b6, 0x6a99a6 },      // Blue
+            new int[]{ 0xccc67a, 0xbbb670, 0xb6b16d, 0xa6a264 }       // Gold
+        };
+        var colors = colorsSets[nextColorSet];
+        nextColorSet = ++nextColorSet % colorsSets.length;
+        var image = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
+        var canvas = image.getGraphics();
+
+        /* Set background color */
+        canvas.setColor(new Color(colors[1]));
+        canvas.fillRect(0, 0, 16, 16);
+
+        /** Add check board */
+        canvas.setColor(new Color(colors[2]));
+        for (var i = 0 ;  i < 15 * 15 ; i += 2) {
+            canvas.fillRect(i % 15 + 1, i / 15 + 1, 1, 1);
+        }
+
+        /** Add light edges and icon */
+        canvas.setColor(new Color(colors[0]));
+        canvas.fillRect(0, 0, 1, 15);
+        canvas.fillRect(0, 0, 15, 1);
+        canvas.fillRect(4, 8, 2, 5);
+        canvas.fillRect(7, 10, 2, 3);
+        canvas.fillRect(10, 3, 2, 10);
+
+        /** Add dark edges */
+        canvas.setColor(new Color(colors[3]));
+        canvas.fillRect(15, 1, 1, 15);
+        canvas.fillRect(1, 15, 15, 1);
+
+        canvas.dispose();
+        return new Texture(image);
     }
 
     /**
