@@ -1,5 +1,6 @@
-# Miumo's Minimalist Minecraft rendering engine
-**Mi<sup>3</sup> Engine** is a very basic and lightweight rendering engine written in Java intended to render Minecraft elements such as resource pack models.
+![Mi³ logo](mi3-banner.png)
+
+> **Mi<sup>3</sup> Engine** is a very basic and lightweight rendering engine written in Java intended to render Minecraft elements such as resource pack models.
 ## Performances
 Performances are not adapted to video or live preview but are still suitable for efficient image generation. Generating an image of 1287x1287 for a large model containing 400 cubes takes about 100ms (depends of the hardware of course).
 ## Usage

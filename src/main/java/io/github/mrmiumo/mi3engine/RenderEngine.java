@@ -56,14 +56,14 @@ public class RenderEngine {
      * Creates a new engine. One engine can be created to generate
      * pictures of a given size. Once created, one engine can be used
      * to generate multiple objects. Usage:
-     * <pre>
+     * <code>
      * var engine = new RenderEngine(1920, 1080);
      * engine.camera()            // Setup camera position, angle and zoom
      *       .setZoom(0.32);
      * engine.addCube(myCube);    // Add scene elements
      * var img = engine.render(); // Render the scene
      * ImageIO.write(img, "PNG", myOutputStream);
-     * <pre>
+     * </code>
      * Included tools can be used to generate cubes automatically for
      * some Minecraft elements such as models with {@link ModelParser}.
      * @param width the width of the image to generate in px (horizontal)
@@ -109,8 +109,6 @@ public class RenderEngine {
     /**
      * Convert all current cubes into triangles, order them and render
      * them depending on their depth and transparency.
-     * @param width the width of the image to generate
-     * @param height the height of the image to generate
      * @return the generated image
      */
     public BufferedImage render() {
