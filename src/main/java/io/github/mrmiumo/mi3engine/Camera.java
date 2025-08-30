@@ -24,6 +24,11 @@ public class Camera {
     private Vec camTranslation = new Vec(0,0,0);
 
     /**
+     * Default constructor that create a new default camera.
+     */
+    public Camera() { }
+
+    /**
      * Defines the camera rotation. Each rotation is given in degrees
      * between -180 and 180.
      * @param x the rotation on the x axis (tilt: up/down)

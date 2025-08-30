@@ -43,6 +43,11 @@ public class ModelParser {
     /** Path of the default textures if set in 'default.minecraft.pack' */
     private final Path defaultTextures = loadProperty();
 
+    /**
+     * Creates and initializes a new parser. Don't forget to setup
+     * the 'default.minecraft.pack' in your application.properties!
+     */
+    public ModelParser() { }
 
     /**
      * Parses the given model file. A valid model file is well formed
@@ -143,8 +148,6 @@ public class ModelParser {
     /* ************************************************************ *\
      *                           ELEMENTS                           *
     \* ************************************************************ */
-
-    public static int angle = 0;
 
     /**
      * Converts the given "elements" child into a Cube and adds it to

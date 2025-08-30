@@ -60,14 +60,14 @@ public class RenderEngine {
      * Creates a new engine. One engine can be created to generate
      * pictures of a given size. Once created, one engine can be used
      * to generate multiple objects. Usage:
-     * <pre>
+     * <code>
      * var engine = new RenderEngine(1920, 1080);
      * engine.camera()            // Setup camera position, angle and zoom
      *       .setZoom(0.32);
      * engine.addCube(myCube);    // Add scene elements
      * var img = engine.render(); // Render the scene
      * ImageIO.write(img, "PNG", myOutputStream);
-     * <pre>
+     * </code>
      * Included tools can be used to generate cubes automatically for
      * some Minecraft elements such as models with {@link ModelParser}.
      * @param width the width of the image to generate in px (horizontal)
@@ -113,8 +113,6 @@ public class RenderEngine {
     /**
      * Convert all current cubes into triangles, order them and render
      * them depending on their depth and transparency.
-     * @param width the width of the image to generate
-     * @param height the height of the image to generate
      * @return the generated image
      */
     public BufferedImage render() {
@@ -329,6 +327,11 @@ public class RenderEngine {
     }
 
     static record Vec2(double x, double y) { }
+
+    // TODO clean all mains
+    // TODO make sure application.properties works
+    // TODO Add auto-frame tool
+    // TODO put all tools together in a tools package?
     public static void main(String[] args) throws Exception {
         var renderer = new RenderEngine(1287, 1287);
         renderer.camera()
@@ -336,7 +339,7 @@ public class RenderEngine {
             .setTranslation(1, 0)
             .setZoom(0.32);
 
-        var pack = Path.of("C:/Users/aurel/AppData/Roaming/.minecraft/downloads/ee67e85d-699f-3d24-ba17-e9bd42a498d2/bab0f51908a4341e2e3055b9ac511272175b708e~/assets/minecraft/models");
+        var pack = Path.of("C:/Users/aurel/AppData/Roaming/.minecraft/downloads/ee67e85d-699f-3d24-ba17-e9bd42a498d2/f278d9f397dd337ef6b243c5ff5080d76e52e9f6~/assets/minecraft/models");
         new ModelParser().parse(pack.resolve("item/ride/pcf/pcf.json")).addAll(renderer);
         // new ModelParser(pack.resolve("item/ride/pcf/blocktemplate.json")).render(renderer);
         var start = System.currentTimeMillis();
