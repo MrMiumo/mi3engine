@@ -4,6 +4,11 @@ import io.github.mrmiumo.mi3engine.RenderEngine.Vec2;
 
 /**
  * Triangle data structure to represent a vertex.
+ * @param x the value of the vector on the x axis
+ * @param y the value of the vector on the y axis
+ * @param depth the value of the vector on the z axis
+ * @param u the x value of the UV vector (for texture)
+ * @param v the y value of the UV vector (for texture)
  */
 public record TriVertex(double x, double y, double depth, double u, double v) {
     

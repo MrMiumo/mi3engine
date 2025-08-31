@@ -10,6 +10,7 @@ import static io.github.mrmiumo.mi3engine.RenderUtils.clamp;
 /**
  * Image or portion of an image used to be paint over model faces.
  * @param source the image to use for this texture
+ * @param pixels internal variable used for read source pixels faster
  * @param x the x coordinate of the top-left corner of the uv box
  * @param y the y coordinate of the top-left corner of the uv box
  * @param w the width of the uv box

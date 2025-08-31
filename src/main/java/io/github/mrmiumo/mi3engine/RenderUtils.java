@@ -6,6 +6,11 @@ package io.github.mrmiumo.mi3engine;
 public final class RenderUtils {
 
     /**
+     * Private constructor to prevent usage of default constructor
+     */
+    private RenderUtils() { }
+
+    /**
      * Finds the smaller value among the 3 given numbers and returns it.0
      * @param a the first number to compare
      * @param b the second number to compare

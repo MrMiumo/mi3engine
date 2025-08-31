@@ -55,6 +55,11 @@ public class AutoFramer implements RenderEngine {
     }
 
     @Override
+    public RenderEngine setCamera(Camera camera) {
+        return engine.setCamera(camera);
+    }
+
+    @Override
     public void addCube(Cube cube) {
         engine.addCube(cube);
     }

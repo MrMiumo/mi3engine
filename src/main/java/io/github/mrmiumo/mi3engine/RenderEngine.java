@@ -32,10 +32,21 @@ public interface RenderEngine {
      * some Minecraft elements such as models with {@link ModelParser}.
      * @param width the width of the image to generate in px (horizontal)
      * @param height the height of the image to generate in px (vertical)
+     * @return the engine created for the given image size
      */
     public static RenderEngine from(int width, int height) {
         return new RenderCore(width, height);
     }
+
+    /**
+     * Enables to put in place a custom camera to replace the default one.
+     * <p>
+     * In most of the cases, you should use the default camera and
+     * customize it!
+     * @param camera the camera to set
+     * @return this engine
+     */
+    public RenderEngine setCamera(Camera camera);
 
     /**
      * Gets the object that enables camera configuration
@@ -79,5 +90,10 @@ public interface RenderEngine {
      */
     public BufferedImage render();
     
+    /**
+     * Simple 2D vector data object.
+     * @param x the x coordinate of the vector
+     * @param y the y coordinate of the vector
+     */
     public static record Vec2(double x, double y) { }
 }

@@ -38,7 +38,7 @@ class RenderCore implements RenderEngine {
     final List<Cube> cubes = new ArrayList<>();
 
     /** The camera settings */
-    private final Camera config = new Camera();
+    private Camera config = new Camera();
 
     /** The width of the image to generate */
     private final int width;
@@ -81,6 +81,12 @@ class RenderCore implements RenderEngine {
     }
 
     @Override
+    public RenderEngine setCamera(Camera camera) {
+        this.config = camera;
+        return this;
+    }
+
+    @Override
     public void addCube(Cube cube) {
         cubes.add(cube);
     }
@@ -115,6 +121,7 @@ class RenderCore implements RenderEngine {
 
         List<Triangle> trianglesOpaque = new ArrayList<>();
         List<Triangle> trianglesTransparent = new ArrayList<>();
+        var zoom = config.zoom() * Math.min(width, height) / 1287;
 
         /* Create triangles from boxes */
         for (Cube cube : cubes) {
@@ -132,8 +139,8 @@ class RenderCore implements RenderEngine {
                 for (int k = 0 ; k < 4 ; k++) {
                     Vec world = modelPoint.apply(localVerts[idxs[k]]);
                     Vec view = world.rotate(config.rotation()).sub(config.translation());
-                    double sxPix = center.x() + (view.x() * config.zoom());
-                    double syPix = center.y() - (view.y() * config.zoom());
+                    double sxPix = center.x() + (view.x() * zoom);
+                    double syPix = center.y() - (view.y() * zoom);
                     screenVerts[k] = new Vec2(sxPix, syPix);
                     depthVals[k] = -view.z();
                 }

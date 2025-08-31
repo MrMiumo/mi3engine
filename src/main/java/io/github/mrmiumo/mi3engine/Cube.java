@@ -17,11 +17,20 @@ public record Cube(Vec size, Vec position, Vec rotation, Vec pivot, EnumMap<Face
      * Creates a new cube builder defined by its size only.
      * @param from coordinates of one corner of the cube
      * @param to coordinates of the opposite corner
+     * @return a builder to configure the cube
      */
     public static Builder from(Vec from, Vec to) {
         return Builder.from(from, to);
     }
 
+    /**
+     * Creates a new cube.
+     * @param size the size of the cube (width and height)
+     * @param position the position of the cube in the space (x, y, z)
+     * @param rotation the angle of the cube (x, y, z)
+     * @param pivot the point on which the rotation must be applied
+     * @param textures the texture to use for each face
+     */
     public Cube {
         position = position.add(CENTER_OFFSET);
         pivot = pivot == null ? new Vec(0, 0, 0) : pivot;
@@ -66,13 +75,38 @@ public record Cube(Vec size, Vec position, Vec rotation, Vec pivot, EnumMap<Face
      * Names of the cube faces
      */
     public static enum Face {
-        SOUTH, NORTH, UP, DOWN, EAST, WEST;
+        /** The front face */
+        SOUTH,
+        /** The back face */
+        NORTH,
+        /** The top face */
+        UP,
+        /** The bottom face */
+        DOWN,
+        /** The left face */
+        EAST,
+        /** The right face */
+        WEST;
     }
 
+    /**
+     * Represent each of the 3 axis.
+     */
     public static enum Axis {
-        X, Y, Z;
+
+        /** The X axis (left/right) */
+        X,
+
+        /** The Y axis (top/bottom) */
+        Y,
+
+        /** The Z axis (front/back) */
+        Z;
     }
 
+    /**
+     * Cube builder that enable to create new cubes easily.
+     */
     public static class Builder {
         /** Position of the cube in the space */
         private final Vec position;
@@ -93,6 +127,7 @@ public record Cube(Vec size, Vec position, Vec rotation, Vec pivot, EnumMap<Face
          * Creates a new cube builder defined by its size only.
          * @param from coordinates of one corner of the cube
          * @param to coordinates of the opposite corner
+         * @return a new builder to configure the cube of the given size
          */
         public static Builder from(Vec from, Vec to) {
             var x = from.x();
@@ -141,7 +176,9 @@ public record Cube(Vec size, Vec position, Vec rotation, Vec pivot, EnumMap<Face
 
         /**
          * Sets a rotation pivot point for this cube.
-         * @param pivot the coordinates of the pivot point
+         * @param x the x coordinate of the pivot point
+         * @param y the y coordinate of the pivot point
+         * @param z the z coordinate of the pivot point
          * @return this builder
          */
         public Builder pivot(double x, double y, double z) {
@@ -185,6 +222,7 @@ public record Cube(Vec size, Vec position, Vec rotation, Vec pivot, EnumMap<Face
          * </pre>
          * @param face the face to apply the texture to
          * @param texture the texture to set
+         * @param rotate to rotate the texture (0, 1, 2 or 3)
          * @param x1 the x coordinate of the top left corner of the UV box
          * @param y1 the y coordinate of the top left corner of the UV box
          * @param x2 the x coordinate of the bottom right corner of the box
