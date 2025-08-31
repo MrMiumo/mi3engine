@@ -3,7 +3,7 @@ package io.github.mrmiumo.mi3engine;
 /**
  * Tools functions shared for the rendering.
  */
-final class RenderUtils {
+public final class RenderUtils {
 
     /**
      * Finds the smaller value among the 3 given numbers and returns it.0
@@ -63,7 +63,7 @@ final class RenderUtils {
      * @param color the color to blend with
      * @return the transformed argb
      */
-    public static int transformColor(int argb, double intensity, int color) {
+    static int transformColor(int argb, double intensity, int color) {
         int a = (argb >>> 24) & 0xFF; // Alpha
         int r = (argb >> 16) & 0xFF;  // Red
         int g = (argb >> 8) & 0xFF;   // Green

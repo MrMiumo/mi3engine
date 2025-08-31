@@ -15,7 +15,7 @@ import static io.github.mrmiumo.mi3engine.Camera.*;
  * @param opaque whether the texture has transparency or not
  * @param avgDepth average depth of the triangle
  */
-record Triangle(TriVertex a, TriVertex b, TriVertex c, Texture texture, double intensity, boolean opaque, double avgDepth) {
+public record Triangle(TriVertex a, TriVertex b, TriVertex c, Texture texture, double intensity, boolean opaque, double avgDepth) {
 
     /**
      * Creates a new triangle from the given screen vertices, z depths,

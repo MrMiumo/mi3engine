@@ -6,7 +6,7 @@ package io.github.mrmiumo.mi3engine;
  * @param y the size of the vector on the Y axis
  * @param z the size of the vector on the Z axis
  */
-record Vec(double x, double y, double z) {
+public record Vec(double x, double y, double z) {
 
     /** The zero vector with all axis on 0 */
     public static final Vec ZERO = new Vec(0, 0, 0);
@@ -16,7 +16,7 @@ record Vec(double x, double y, double z) {
      * @param other the other vector to sum with this one
      * @return the new vector resulting of the sum
      */
-    Vec add(Vec other) {
+    public Vec add(Vec other) {
         return new Vec(x + other.x, y + other.y, z + other.z);
     }
 
@@ -25,7 +25,7 @@ record Vec(double x, double y, double z) {
      * @param other the other vector to subtract with this one
      * @return the new vector resulting of the sum
      */
-    Vec sub(Vec other) {
+    public Vec sub(Vec other) {
         return new Vec(x - other.x, y - other.y, z - other.z);
     }
     
@@ -34,7 +34,7 @@ record Vec(double x, double y, double z) {
      * @param other the vector to cross with
      * @return the cross vector
      */
-    Vec cross(Vec other) {
+    public Vec cross(Vec other) {
         double newX = this.y * other.z - this.z * other.y;
         double newY = this.z * other.x - this.x * other.z;
         double newZ = this.x * other.y - this.y * other.x;
@@ -47,7 +47,7 @@ record Vec(double x, double y, double z) {
      * @param other the other vector to multiply with
      * @return the sum of the multiplications
      */
-    double dot(Vec other) {
+    public double dot(Vec other) {
         return x * other.x + y * other.y + z * other.z;
     }
 
@@ -56,7 +56,7 @@ record Vec(double x, double y, double z) {
      * proportions) to set its length to 1.
      * @return the normalized vector
      */
-    Vec normalize() {
+    public Vec normalize() {
         double l = length();
         if (l == 0) return new Vec(0, 0, 0);
         return new Vec(x / l, y / l, z / l);
@@ -66,7 +66,7 @@ record Vec(double x, double y, double z) {
      * Computes the length of the vector after computing each component
      * @return the length of the segment represented by the vector
      */
-    double length() {
+    public double length() {
         return Math.sqrt(x*x + y*y + z*z);
     }
 

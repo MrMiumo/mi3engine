@@ -18,7 +18,7 @@ import static io.github.mrmiumo.mi3engine.RenderUtils.clamp;
  * @param isTransparent whether or not this texture has transparency.
  *     DO NOT SET THIS VALUE BY YOURSELF
  */
-record Texture(BufferedImage source, int[] pixels, float x, float y, float w, float h, int rotate, boolean isTransparent) {
+public record Texture(BufferedImage source, int[] pixels, float x, float y, float w, float h, int rotate, boolean isTransparent) {
 
     /** Iterator over each default texture colorSet available */
     private static int nextColorSet = 0;

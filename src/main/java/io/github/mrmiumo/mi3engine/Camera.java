@@ -42,10 +42,20 @@ public class Camera {
     }
 
     /**
+     * Gets the configured camera rotation. This method return the
+     * value given by the user, not the transformed value. To get the
+     * one transformed to be usable by the engine, use {@link #rotation()}.
+     * @return the rotation currently set up
+     */
+    public Vec getRotation() {
+        return new Vec(- camRotation.x(), 180 - camRotation.y(), camRotation.z());
+    }
+
+    /**
      * Gets the rotation of the camera (the angle at which its pointing)
      * @return the rotation of the camera in degrees
      */
-    public Vec camRotation() {
+    public Vec rotation() {
         return camRotation;
     }
 
@@ -61,10 +71,20 @@ public class Camera {
     }
 
     /**
+     * Gets the configured camera translation. This method return the
+     * value given by the user, not the transformed value. To get the
+     * one transformed to be usable by the engine, use {@link #translation()}.
+     * @return the translation currently set up
+     */
+    public Vec getTranslation() {
+        return new Vec(- camTranslation.x() / 5.25, - camTranslation.y() / 5.25, 0);
+    }
+
+    /**
      * Gets the translation of the camera (the position in the space)
      * @return the translation of the camera
      */
-    public Vec camTranslation() {
+    public Vec translation() {
         return camTranslation;
     }
 
@@ -77,6 +97,17 @@ public class Camera {
         zoom = scale * 80.5;
         return this;
     }
+    
+    /**
+     * Gets the configured camera zoom. This method return the
+     * value given by the user, not the transformed value. To get the
+     * one transformed to be usable by the engine, use {@link #zoom()}.
+     * @return the zoom currently set up
+     */
+    public double getZoom() {
+        return zoom / 80.5;
+    }
+
     /**
      * Gets the zoom of the camera (the scale)
      * @return the zoom

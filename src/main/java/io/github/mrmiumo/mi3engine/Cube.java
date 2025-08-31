@@ -10,7 +10,7 @@ import java.util.EnumMap;
  * @param pivot the rotation origin point (nullable)
  * @param textures the texture applied to each face of the cube
  */
-record Cube(Vec size, Vec position, Vec rotation, Vec pivot, EnumMap<Face, Texture> textures) {
+public record Cube(Vec size, Vec position, Vec rotation, Vec pivot, EnumMap<Face, Texture> textures) {
     private final static Vec CENTER_OFFSET = new Vec(8, -8, -8);
 
     /**

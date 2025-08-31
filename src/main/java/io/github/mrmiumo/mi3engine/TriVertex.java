@@ -5,7 +5,7 @@ import io.github.mrmiumo.mi3engine.RenderEngine.Vec2;
 /**
  * Triangle data structure to represent a vertex.
  */
-record TriVertex(double x, double y, double depth, double u, double v) {
+public record TriVertex(double x, double y, double depth, double u, double v) {
     
     /** Default UVs */
     private static final Vec2[] UV = new Vec2[] { new Vec2(0,0), new Vec2(1,0), new Vec2(1,1), new Vec2(0,1) };
