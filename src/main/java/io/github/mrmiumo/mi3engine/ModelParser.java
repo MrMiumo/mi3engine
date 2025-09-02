@@ -60,15 +60,37 @@ public class ModelParser extends RenderTool {
      * @throws IOException in case of error while parsing the JSON
      */
     public ModelParser parse(Path file) throws IOException {
-        var data = Files.readString(file);
-        texturesFolder = getTexturesFolder(file);
         textures.clear();
 
         engine.clear();
+        parseInternal(file);
+        return this;
+    }
+
+    /**
+     * Internal method that parses the given file without resetting
+     * anything.
+     * @param file the file to parse
+     * @throws IOException in case of error while reading the file
+     */
+    private void parseInternal(Path file) throws IOException {
+        var data = Files.readString(file);
+        texturesFolder = getTexturesFolder(file);
+
         var json = MAPPER.readTree(data);
         parseTextures(json.get("textures"));
-        json.get("elements").elements().forEachRemaining(element -> parseElement(element));
-        return this;
+        
+        var parent = json.get("parent");
+        if (parent != null) {
+            /* Inheritance: parse the parent and override textures */
+            var path = file.toAbsolutePath().toString()
+                .replace("\\", "/")
+                .replaceFirst("assets/minecraft/models/.*", "assets/minecraft/models/");
+            parseInternal(Path.of(path).resolve(parent.asText() + ".json"));
+        } else {
+            /* Normal model */
+            json.get("elements").elements().forEachRemaining(element -> parseElement(element));
+        }
     }
 
     @Override
@@ -92,7 +114,7 @@ public class ModelParser extends RenderTool {
             .filter(p -> !"particle".equals(p.getKey()))
             .forEach(p -> {
                 try {
-                    textures.put("#" + p.getKey(), loadTexture(p.getValue().asText()));
+                    textures.putIfAbsent("#" + p.getKey(), loadTexture(p.getValue().asText()));
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
