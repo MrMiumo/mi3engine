@@ -1,11 +1,11 @@
 package io.github.mrmiumo.mi3engine;
 
+import static io.github.mrmiumo.mi3engine.RenderUtils.clamp;
+
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.util.Random;
-
-import static io.github.mrmiumo.mi3engine.RenderUtils.clamp;
 
 /**
  * Image or portion of an image used to be paint over model faces.
@@ -25,51 +25,18 @@ public record Texture(BufferedImage source, int[] pixels, float x, float y, floa
     private static int nextColorSet = 0;
 
     /**
-     * Customization of the default constructor needed to convert x-y
-     * and w-h from the 16x16 format of Minecraft model files to the
-     * source image size.
-     * @param source the image to use for this texture
-     * @param pixels internal variable used for read source pixels faster
-     * @param x the x coordinate of the top-left corner of the uv box
-     * @param y the y coordinate of the top-left corner of the uv box
-     * @param w the width of the uv box
-     * @param h the height of the uv box
-     * @param rotate the rotation of the texture (1 = 90° CW and so on)
-     * @param isTransparent whether or not this texture has transparency.
-     */
-    public Texture {
-        if (source.getWidth() != 16 || source.getHeight() != 16) {
-            x = x * source.getWidth() / 16;
-            y = y * source.getHeight() / 16;
-            w = w * source.getWidth() / 16;
-            h = h * source.getHeight() / 16;
-        }
-    }
-
-    /**
-     * Creates a new texture from the given image and cut the given
-     * UV box into it.
-     * @param source the image to use for this texture
-     * @param x the x coordinate of the top-left corner of the uv box
-     * @param y the y coordinate of the top-left corner of the uv box
-     * @param w the width of the uv box
-     * @param h the height of the uv box
-     * @param rotate the rotation of the texture (1 = 90° CW and so on)
-     */
-    public Texture(BufferedImage source, float x, float y, float w, float h, int rotate) {
-        this(source, getPixels(source), x, y, w, h, rotate, isTransparent(source,
-            (int)Math.ceil(x), (int)Math.ceil(y),
-            (int)Math.floor(w), (int)Math.floor(h)
-        ));
-    }
-
-    /**
      * Creates a new texture from the given image. The uv box uses the
      * full image and no rotation is applied.
      * @param img the image to use as texture
      */
-    public Texture(BufferedImage img) {
-        this(img, 0, 0, img.getWidth(), img.getHeight(), 0);
+    public static Texture from(BufferedImage img) {
+        var w = img.getWidth();
+        var h = img.getHeight();
+        var pixels = getPixels(img);
+        if (isEmpty(pixels, w, 0, 0, w, h)) {
+            return null;
+        }
+        return new Texture(img, pixels, 0, 0, w, h, 0, isTransparent(img, pixels, 0, 0, w, h));
     }
 
     /**
@@ -84,7 +51,26 @@ public record Texture(BufferedImage source, int[] pixels, float x, float y, floa
      * @return the new texture with the given UV box and rotation
      */
     public Texture uv(float x, float y, float w, float h, int rotate) {
-        return new Texture(source, pixels, x, y, w, h, rotate, isTransparent);
+        /* Adapt uv from 16x16 to the real size */
+        if (source.getWidth() != 16 || source.getHeight() != 16) {
+            x = x * source.getWidth() / 16f;
+            y = y * source.getHeight() / 16f;
+            w = w * source.getWidth() / 16f;
+            h = h * source.getHeight() / 16f;
+        }
+
+        var uvX = Math.round(x);
+        var uvY = Math.round(y);
+        var uvW = Math.round(w);
+        var uvH = Math.round(h);
+
+        /* Make sure the face have pixels */
+        if (isEmpty(pixels, source.getWidth(), uvX, uvY, uvW, uvH)) {
+            return null; // No need for texture!
+        }
+
+        var transparency = isTransparent ? isTransparent(source, pixels, uvX, uvY, uvW, uvH) : false;
+        return new Texture(source, pixels, uvX, uvY, uvW, uvH, rotate, transparency);
     }
 
     /**
@@ -160,32 +146,42 @@ public record Texture(BufferedImage source, int[] pixels, float x, float y, floa
         canvas.fillRect(1, 15, 15, 1);
 
         canvas.dispose();
-        return new Texture(image);
+        return new Texture(image, getPixels(image), 0, 0, 16, 16, 0, false);
+    
     }
 
     /**
-     * Cheap on-time scan to detect quickly if the given image have
-     * any pixel with alpha < 255.
-     * @param source the image to analyze
-     * @param x the position of the top-left corner of the region to analyze
-     * @param y the position of the top-left corner of the region to analyze
-     * @param w the width of the region to analyze
-     * @param h the height of the region to analyze
-     * @return true if at least one transparent pixel got detected,
-     *     false otherwise
+     * Tests if the given image data and UV box contains at least one
+     * not transparent pixel.
+     * @param pixels the pixels of the image
+     * @param srcW the initial width of the full image
+     * @param x the x coordinate of the top left corner of the UV box
+     * @param y the y coordinate of the top left corner of the UV box
+     * @param w the width of the UV box
+     * @param h the height of the UV box
+     * @return true if no visible pixel exists in the UV box, false otherwise
      */
-    private static boolean isTransparent(BufferedImage source, int x, int y, int w, int h) {
-        /* No alpha channel = not transparent */
-        if (!source.getColorModel().hasAlpha()) {
-            return false;
+    private static boolean isEmpty(int[] pixels, int srcW, int x, int y, int w, int h) {
+        final int maxScan = 2000;
+
+        /* Handles negative sizes */
+        if (w < 0) {
+            w *= -1;
+            x -= w;
+        }
+        if (h < 0) {
+            h *= -1;
+            y -= h;
         }
 
-        final int maxScan = 2000;
+        /* Scan the image */
         if (w * h <= maxScan) {
             /* Full Scan */
             for (int j = y ; j < y + h ; j++) {
                 for (int i = x ; i < x + w ; i++) {
-                    if ((source.getRGB(i, j) >>> 24) < 255) return true;
+                    if ((pixels[j * srcW + i] >>> 24) > 0) {
+                        return false;
+                    }
                 }
             }
         } else {
@@ -194,7 +190,46 @@ public record Texture(BufferedImage source, int[] pixels, float x, float y, floa
             for (int i = 0 ; i < maxScan ; i++) {
                 int rx = x + rnd.nextInt(w);
                 int ry = y + rnd.nextInt(h);
-                if ((source.getRGB(rx, ry) >>> 24) < 255) return true;
+                if ((pixels[ry * srcW + rx] >>> 24) > 0) return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Cheap on-time scan to detect quickly if the given image have
+     * any pixel with alpha < 255.
+     * @param source the image to analyze
+     * @param pixels the pixels of the image
+     * @param x the position of the top-left corner of the region to analyze
+     * @param y the position of the top-left corner of the region to analyze
+     * @param w the width of the region to analyze
+     * @param h the height of the region to analyze
+     * @return true if at least one transparent pixel got detected,
+     *     false otherwise
+     */
+    private static boolean isTransparent(BufferedImage source, int[] pixels, int x, int y, int w, int h) {
+        /* No alpha channel = not transparent */
+        if (!source.getColorModel().hasAlpha()) {
+            return false;
+        }
+
+        final int maxScan = 2000;
+        final int width = source.getWidth();
+        if (w * h <= maxScan) {
+            /* Full Scan */
+            for (int j = y ; j < y + h ; j++) {
+                for (int i = x ; i < x + w ; i++) {
+                    if ((pixels[j * width + i] >>> 24) < 255) return true;
+                }
+            }
+        } else {
+            /* Random scan */
+            Random rnd = new Random(12345);
+            for (int i = 0 ; i < maxScan ; i++) {
+                int rx = x + rnd.nextInt(w);
+                int ry = y + rnd.nextInt(h);
+                if ((pixels[ry * width + rx] >>> 24) < 255) return true;
             }
         }
         return false;

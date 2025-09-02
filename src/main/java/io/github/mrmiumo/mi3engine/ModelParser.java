@@ -133,13 +133,13 @@ public class ModelParser extends RenderTool {
         /* Try with the pack texture first */
         if (texturesFolder != null) {
             var path = texturesFolder.resolve(name + ".png");
-            if (Files.exists(path)) return new Texture(ImageIO.read(Files.newInputStream(path)));
+            if (Files.exists(path)) return Texture.from(ImageIO.read(Files.newInputStream(path)));
         }
 
         /* Try with vanilla textures then */
         if (defaultTextures != null) {
             var path = defaultTextures.resolve(name + ".png");
-            if (Files.exists(path)) return new Texture(ImageIO.read(Files.newInputStream(path)));
+            if (Files.exists(path)) return Texture.from(ImageIO.read(Files.newInputStream(path)));
         }
         
         /* Texture not found */
@@ -207,7 +207,9 @@ public class ModelParser extends RenderTool {
                 var rotate = parseTextureRotation(node.getValue());
                 var textureId = node.getValue().get("texture").asText();
                 var texture = textures.computeIfAbsent(textureId, s -> Texture.generateDefault());
-                cube.texture(face, texture, rotate, uv.get(0), uv.get(1), uv.get(2), uv.get(3));
+                if (texture != null) {
+                    cube.texture(face, texture, rotate, uv.get(0), uv.get(1), uv.get(2), uv.get(3));
+                }
             });
         }
 
