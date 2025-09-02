@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.mrmiumo</groupId>
     <artifactId>mi3engine</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Miumo's Minimalist Minecraft rendering engine</description>
     <url>https://github.com/MrMiumo/mi3engine</url>

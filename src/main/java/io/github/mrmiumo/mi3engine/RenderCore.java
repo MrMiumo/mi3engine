@@ -150,6 +150,7 @@ class RenderCore implements RenderEngine {
                 
                 for (int[] points : TRIANGLES) {
                     var triangle = Triangle.from(screenVerts, depthVals, points, tex);
+                    if (triangle == null) continue;
                     if (triangle.opaque()) trianglesOpaque.add(triangle);
                     else trianglesTransparent.add(triangle);
                 }

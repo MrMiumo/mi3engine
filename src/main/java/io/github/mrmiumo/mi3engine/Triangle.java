@@ -31,10 +31,13 @@ public record Triangle(TriVertex a, TriVertex b, TriVertex c, Texture texture, d
         var b = TriVertex.from(screenVerts, depths, points[1]);
         var c = TriVertex.from(screenVerts, depths, points[2]);
 
+        var normal = getNormal(a, b, c);
+        if (normal.z() > 0) return null;
+
         return new Triangle(
             a, b, c,
             texture,
-            computeIntensity(a, b, c),
+            computeIntensity(normal),
             !texture.isTransparent(),
             (a.depth() + b.depth() + c.depth()) / 3.0
         );
@@ -43,14 +46,10 @@ public record Triangle(TriVertex a, TriVertex b, TriVertex c, Texture texture, d
     /**
      * Computes the normal vector (direction of the face) to
      * compute the corresponding light intensity of the face.
+     * @param normal the normal vector of this triangle
      * @return the intensity of the face
      */
-    private static double computeIntensity(TriVertex a, TriVertex b, TriVertex c) {
-        /* Computes the faceNormal */
-        Vec ab = b.vec().sub(a.vec());
-        Vec ac = c.vec().sub(a.vec());
-        var normal = ab.cross(ac).normalize();
-
+    private static double computeIntensity(Vec normal) {
         /* Computes the light from the normal */
         double diffuseFactor = normal.dot(LIGHT_DIRECTION);
         double clampedDiffuseFactor = Math.max(0, diffuseFactor);
@@ -58,5 +57,19 @@ public record Triangle(TriVertex a, TriVertex b, TriVertex c, Texture texture, d
         if (normal.y() < 0) finalIntensity /= 1 -normal.y();
 
         return Math.min(1.0, finalIntensity);
+    }
+
+    /**
+     * Computes the normal vector of this triangle - the direction at
+     * which the triangle is facing.
+     * @param a the vertex of the first corner
+     * @param b the vertex of the second corner
+     * @param c the vertex of the third corner
+     * @return the normal vector
+     */
+    private static Vec getNormal(TriVertex a, TriVertex b, TriVertex c) {
+        Vec ab = b.vec().sub(a.vec());
+        Vec ac = c.vec().sub(a.vec());
+        return ab.cross(ac).normalize();
     }
 }

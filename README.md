@@ -21,7 +21,7 @@ This engine is written in Java 17 (maybe compatible with Java 15 but not tested)
 <dependency>
     <groupId>io.github.mrmiumo</groupId>
     <artifactId>mi3engine</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.2</version>
 </dependency>
 ```
 Once imported in your project, you can use it by yourself (creating and adding cubes one by one) or using tools.
@@ -43,7 +43,7 @@ engine.camera()
 
 /* Step 3. Load your textures */
 BufferedImage img = ImageIO.read(Files.newInputStream("myTexture.png"));
-Texture texture = new Texture(img);
+Texture texture = Texture.from(img);
 
 /* Step 4. Create the cubes */
 Cube.from(new Vec(16, 0, 16), new Vec(32, 8,  32))
