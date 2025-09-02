@@ -28,7 +28,10 @@ import io.github.mrmiumo.mi3engine.RenderEngine;
  */
 public class Monitor extends JFrame {
 
+    /** Executor used to generate one cancellable HQ image at a time */
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    
+    /** Task used to generate one cancellable HQ image at a time */
     private Future<?> current;
 
     /** Whether the setup has changed and requires frame render or not */
@@ -51,19 +54,18 @@ public class Monitor extends JFrame {
 
     /**
      * Creates and opens a window to display the engine output.
-     * @throws IOException 
+     * @param width the width of the image to generate
+     * @param height the height of the image to generate
+     * @param model the path of the model to display
+     * @throws IOException in case of error while parsing the file
      */
     public Monitor(int width, int height, Path model) throws IOException {
-        engineHQ = RenderEngine.from(width, height);
-        engineFast = RenderEngine.from(width / 2, height / 2);
+        engineHQ = new ModelParser(RenderEngine.from(width, height)).parse(model);
+        engineFast = RenderEngine.from(width / 2, height / 2).addCubes(engineHQ.getCubes());
         engineFast.setCamera(engineHQ.camera());
         engineHQ.camera()
             .setRotation(25, 35, 0)
             .setZoom(0.32);
-
-        var parser = new ModelParser().parse(model);
-        parser.addAll(engineHQ);
-        parser.addAll(engineFast);
 
         /* Setup the window */
         setUpWindow(width, height);
@@ -160,6 +162,11 @@ public class Monitor extends JFrame {
         )));
     }
 
+    /**
+     * Renders the image at the adapted resolution. Fast render is
+     * used to refresh the display quickly while moving, the HQ render
+     * is used once the scene is still.
+     */
     public void renderImage() {
         frameRendered = true;
         setImage(engineFast.render());

@@ -9,6 +9,7 @@ import javax.imageio.ImageIO;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -27,13 +28,10 @@ import io.github.mrmiumo.mi3engine.Cube.Face;
  * in your application.properties file to give the path to a folder
  * corresponding to the default minecraft resource pack.
  */
-public class ModelParser {
+public class ModelParser extends RenderTool {
 
     /** Lists of all textures with their ID and image */
     private final HashMap<String, Texture> textures = new HashMap<>();
-
-    /** Lists of all elements that composed the model (cubes) */
-    private final ArrayList<Cube> elements = new ArrayList<>();
 
     /** The mapper used to decode JSON */
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -47,8 +45,11 @@ public class ModelParser {
     /**
      * Creates and initializes a new parser. Don't forget to setup
      * the 'default.minecraft.pack' in your application.properties!
+     * @param engine the engine to use to generate the model image
      */
-    public ModelParser() { }
+    public ModelParser(RenderEngine engine) {
+        super(engine);
+    }
 
     /**
      * Parses the given model file. A valid model file is well formed
@@ -61,21 +62,18 @@ public class ModelParser {
     public ModelParser parse(Path file) throws IOException {
         var data = Files.readString(file);
         texturesFolder = getTexturesFolder(file);
+        textures.clear();
 
+        engine.clear();
         var json = MAPPER.readTree(data);
         parseTextures(json.get("textures"));
         json.get("elements").elements().forEachRemaining(element -> parseElement(element));
         return this;
     }
 
-    /**
-     * Add all parsed cubes to the given engine and returns it.
-     * @param engine the engine to add the cubes to
-     * @return the given engine
-     */
-    public RenderEngine addAll(RenderEngine engine) {
-        engine.addCubes(elements);
-        return engine;
+    @Override
+    public BufferedImage render() {
+        return engine.render();
     }
 
 
@@ -152,7 +150,7 @@ public class ModelParser {
 
     /**
      * Converts the given "elements" child into a Cube and adds it to
-     * the {@link #elements} collection.
+     * the engine's collection.
      * @param element the "element" json node from the model file
      */
     private void parseElement(JsonNode element) {
@@ -191,7 +189,7 @@ public class ModelParser {
             });
         }
 
-        elements.add(cube.build());
+        engine.addCube(cube.build());
     }
 
     /**

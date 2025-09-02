@@ -69,8 +69,8 @@ ImageIO.write(output, "PNG", Files.newOutputStream("MyImage.png"));
 This method make the rendering way much easier. Tools are built-in classes that enabled to generate images for some Minecraft components such as pack models. Here is an example:
 
 ```java
-/* Step 1. Create the engine */
-RenderEngine engine = RenderEngine.from(1287, 1287);
+/* Step 1. Create a new parser with an engine */
+ModelParser engine = new ModelParser(RenderEngine.from(1287, 1287));
 
 /* Step 2. Setup the camera */
 engine.camera()
@@ -78,17 +78,13 @@ engine.camera()
     .setTranslation(1, 0)
     .setZoom(0.32);
 
-/* Step 3. Create a new tool to load models from a resource pack */
-ModelParser parser = new ModelParser();
+/* Step 3. Use the tool to convert a file and collect the created cubes */
+engine.parse(pack.resolve("assets/minecraft/models/item/boat.json"));
 
-/* Step 4. Use the tool to convert a file and collect the created cubes */
-parser.parse(pack.resolve("assets/minecraft/models/item/boat.json"));
-parser.addAll(engine);
-
-/* Step 5. Render the image */
+/* Step 4. Render the image */
 BufferedImage output = engine.render();
 
-/* Step 6. Save the image */
+/* Step 5. Save the image */
 ImageIO.write(output, "PNG", Files.newOutputStream("MyImage.png"));
 ```
 **IMPORTANT**: When using the `ModelParser`, you must define a property called 'default.minecraft.pack' in your `application.properties` file to give the path to a folder corresponding to the default minecraft resource pack. If your project does not have such a file yet, add it in the `src/main/resources` folder and add the line:
@@ -110,9 +106,7 @@ RenderEngine engine = new AutoFramer(RenderEngine.from(1287, 1287));
 engine.camera().setRotation(25, -145, 0);
 
 /* Step 3. Add the cubes to the engine */
-new ModelParser()
-    .parse(pack.resolve("assets/minecraft/models/item/boat.json"));
-    .addAll(engine);
+engine.addCubes(myCubes);
 
 /* Step 5. Render the image */
 BufferedImage output = engine.render();
