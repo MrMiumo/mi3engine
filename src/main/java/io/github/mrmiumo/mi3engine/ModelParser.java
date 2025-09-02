@@ -31,7 +31,7 @@ import io.github.mrmiumo.mi3engine.Cube.Face;
 public class ModelParser extends RenderTool {
 
     /** Lists of all textures with their ID and image */
-    private final HashMap<String, Texture> textures = new HashMap<>();
+    private final HashMap<String, TextureHolder> textures = new HashMap<>();
 
     /** The mapper used to decode JSON */
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -114,7 +114,8 @@ public class ModelParser extends RenderTool {
             .filter(p -> !"particle".equals(p.getKey()))
             .forEach(p -> {
                 try {
-                    textures.putIfAbsent("#" + p.getKey(), loadTexture(p.getValue().asText()));
+                    var holder = new TextureHolder(loadTexture(p.getValue().asText()));
+                    textures.putIfAbsent("#" + p.getKey(), holder);
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
@@ -206,9 +207,10 @@ public class ModelParser extends RenderTool {
                 var uv = parseUvs(node.getValue().get("uv"));
                 var rotate = parseTextureRotation(node.getValue());
                 var textureId = node.getValue().get("texture").asText();
-                var texture = textures.computeIfAbsent(textureId, s -> Texture.generateDefault());
-                if (texture != null) {
-                    cube.texture(face, texture, rotate, uv.get(0), uv.get(1), uv.get(2), uv.get(3));
+                var holder = new TextureHolder(Texture.generateDefault());
+                var texture = textures.computeIfAbsent(textureId, s -> holder);
+                if (texture.get() != null) {
+                    cube.texture(face, texture.get(), rotate, uv.get(0), uv.get(1), uv.get(2), uv.get(3));
                 }
             });
         }
@@ -277,4 +279,6 @@ public class ModelParser extends RenderTool {
         } catch (IOException e) {}
         return null;
     }
+
+    private record TextureHolder(Texture get) {}
 }
