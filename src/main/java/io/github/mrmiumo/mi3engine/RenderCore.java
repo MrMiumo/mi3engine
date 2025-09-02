@@ -87,18 +87,21 @@ class RenderCore implements RenderEngine {
     }
 
     @Override
-    public void addCube(Cube cube) {
+    public RenderEngine addCube(Cube cube) {
         cubes.add(cube);
+        return this;
     }
 
     @Override
-    public void addCubes(Collection<Cube> cubes) {
+    public RenderEngine addCubes(Collection<Cube> cubes) {
         this.cubes.addAll(cubes);
+        return this;
     }
 
     @Override
-    public void clearScene() {
+    public RenderEngine clear() {
         cubes.clear();
+        return this;
     }
 
     @Override

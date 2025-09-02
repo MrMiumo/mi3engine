@@ -1,8 +1,6 @@
 package io.github.mrmiumo.mi3engine;
 
 import java.awt.image.BufferedImage;
-import java.util.Collection;
-import java.util.List;
 
 import io.github.mrmiumo.mi3engine.Cube.Face;
 
@@ -10,13 +8,10 @@ import io.github.mrmiumo.mi3engine.Cube.Face;
  * Tools that enables to automatically center the object in the final
  * image and adjust the zoom to fill the available space.
  */
-public class AutoFramer implements RenderEngine {
+public class AutoFramer extends RenderTool {
     
     /** Safety margin to add around the object edges */
     private final double margin;
-
-    /** The original render engine to use for image generation */
-    private final RenderEngine engine;
 
     /**
      * Adds the Auto-Framer tool to the given engine.
@@ -31,7 +26,7 @@ public class AutoFramer implements RenderEngine {
      * @param engine the engine to add the AutoFramer tool to
      */
     public AutoFramer(RenderEngine engine) {
-        this.engine = engine;
+        super(engine);
         this.margin = 0.1;
     }
 
@@ -45,43 +40,8 @@ public class AutoFramer implements RenderEngine {
      * @param margin space added around the object edges (un-zoom the image)
      */
     public AutoFramer(RenderEngine engine, double margin) {
-        this.engine = engine;
+        super(engine);
         this.margin = margin;
-    }
-
-    @Override
-    public Camera camera() {
-        return engine.camera();
-    }
-
-    @Override
-    public RenderEngine setCamera(Camera camera) {
-        return engine.setCamera(camera);
-    }
-
-    @Override
-    public void addCube(Cube cube) {
-        engine.addCube(cube);
-    }
-
-    @Override
-    public void addCubes(Collection<Cube> cubes) {
-        engine.addCubes(cubes);
-    }
-
-    @Override
-    public void clearScene() {
-        engine.clearScene();
-    }
-
-    @Override
-    public List<Cube> getCubes() {
-        return engine.getCubes();
-    }
-
-    @Override
-    public Vec2 size() {
-        return engine.size();
     }
 
     @Override

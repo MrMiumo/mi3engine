@@ -57,19 +57,22 @@ public interface RenderEngine {
     /**
      * Adds a new cube to the scene
      * @param cube the cube to add
+     * @return this engine
      */
-    public void addCube(Cube cube);
+    public RenderEngine addCube(Cube cube);
 
     /**
      * Adds multiple new cubes to the scene
      * @param cubes the cubes to add
+     * @return this engine
      */
-    public void addCubes(Collection<Cube> cubes);
+    public RenderEngine addCubes(Collection<Cube> cubes);
 
     /**
      * Reset the scene by removing all the cubes
+     * @return this engine
      */
-    public void clearScene();
+    public RenderEngine clear();
 
     /**
      * Enables to get a copy of all the cubes currently in the engine.
