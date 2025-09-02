@@ -25,6 +25,28 @@ public record Texture(BufferedImage source, int[] pixels, float x, float y, floa
     private static int nextColorSet = 0;
 
     /**
+     * Customization of the default constructor needed to convert x-y
+     * and w-h from the 16x16 format of Minecraft model files to the
+     * source image size.
+     * @param source the image to use for this texture
+     * @param pixels internal variable used for read source pixels faster
+     * @param x the x coordinate of the top-left corner of the uv box
+     * @param y the y coordinate of the top-left corner of the uv box
+     * @param w the width of the uv box
+     * @param h the height of the uv box
+     * @param rotate the rotation of the texture (1 = 90° CW and so on)
+     * @param isTransparent whether or not this texture has transparency.
+     */
+    public Texture {
+        if (source.getWidth() != 16 || source.getHeight() != 16) {
+            x = x * source.getWidth() / 16;
+            y = y * source.getHeight() / 16;
+            w = w * source.getWidth() / 16;
+            h = h * source.getHeight() / 16;
+        }
+    }
+
+    /**
      * Creates a new texture from the given image and cut the given
      * UV box into it.
      * @param source the image to use for this texture
