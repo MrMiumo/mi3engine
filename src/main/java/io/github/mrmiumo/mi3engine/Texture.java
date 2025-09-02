@@ -214,6 +214,16 @@ public record Texture(BufferedImage source, int[] pixels, float x, float y, floa
             return false;
         }
 
+        /* Handles negative sizes */
+        if (w < 0) {
+            w *= -1;
+            x -= w;
+        }
+        if (h < 0) {
+            h *= -1;
+            y -= h;
+        }
+
         final int maxScan = 2000;
         final int width = source.getWidth();
         if (w * h <= maxScan) {
