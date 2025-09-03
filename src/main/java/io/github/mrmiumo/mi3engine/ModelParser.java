@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
+import java.util.function.Function;
 
 import javax.imageio.ImageIO;
 
@@ -113,12 +114,20 @@ public class ModelParser extends RenderTool {
         json.properties().stream()
             .filter(p -> !"particle".equals(p.getKey()))
             .forEach(p -> {
-                try {
-                    var holder = new TextureHolder(loadTexture(p.getValue().asText()));
-                    textures.putIfAbsent("#" + p.getKey(), holder);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                var value = p.getValue().asText();
+                Function<String, TextureHolder> mapper;
+                if (value.startsWith("#")) {
+                    mapper = k -> new TextureHolder(value);
+                } else {
+                    mapper = k -> {
+                        try {
+                            return new TextureHolder(loadTexture(value));
+                        } catch (IOException e) {
+                            throw new UncheckedIOException(e);
+                        }
+                    };
                 }
+                textures.computeIfAbsent("#" + p.getKey(), mapper);
             });
     }
 
@@ -207,8 +216,7 @@ public class ModelParser extends RenderTool {
                 var uv = parseUvs(node.getValue().get("uv"));
                 var rotate = parseTextureRotation(node.getValue());
                 var textureId = node.getValue().get("texture").asText();
-                var holder = new TextureHolder(Texture.generateDefault());
-                var texture = textures.computeIfAbsent(textureId, s -> holder);
+                var texture = textures.computeIfAbsent(textureId, s -> new TextureHolder(Texture.generateDefault()));
                 if (texture.get() != null) {
                     cube.texture(face, texture.get(), rotate, uv.get(0), uv.get(1), uv.get(2), uv.get(3));
                 }
@@ -280,5 +288,41 @@ public class ModelParser extends RenderTool {
         return null;
     }
 
-    private record TextureHolder(Texture get) {}
+    private class TextureHolder {
+        /** The real texture if available */
+        private final Texture texture;
+
+        /** Another texture ID if the real texture is missing */
+        private final String id;
+
+        /**
+         * Creates a new texture holder containing a real texture.
+         * @param texture the texture to insert in the holder
+         */
+        public TextureHolder(Texture texture) {
+            this.texture = texture;
+            this.id = null;
+        }
+
+        /**
+         * Creates a new texture holder containing texture reference.
+         * @param id the ID of the texture to refer to
+         */
+        public TextureHolder(String id) {
+            this.texture = null;
+            this.id = id;
+        }
+
+        /**
+         * Gets the texture contained in this holder. If this holder
+         * contains a reference to a missing texture or if the texture
+         * has been set to null, this method can return null!
+         * @return the texture or null
+         */
+        public Texture get() {
+            if (texture != null) return texture;
+            var reference = textures.get(id);
+            return reference == null ? null : reference.get();
+        }
+    }
 }

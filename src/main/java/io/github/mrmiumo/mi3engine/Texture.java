@@ -59,10 +59,10 @@ public record Texture(BufferedImage source, int[] pixels, float x, float y, floa
             h = h * source.getHeight() / 16f;
         }
 
-        var uvX = Math.round(x);
-        var uvY = Math.round(y);
-        var uvW = Math.round(w);
-        var uvH = Math.round(h);
+        var uvX = (int)x;
+        var uvY = (int)y;
+        var uvW = (int)w;
+        var uvH = (int)h;
 
         /* Make sure the face have pixels */
         if (isEmpty(pixels, source.getWidth(), uvX, uvY, uvW, uvH)) {
@@ -70,7 +70,7 @@ public record Texture(BufferedImage source, int[] pixels, float x, float y, floa
         }
 
         var transparency = isTransparent ? isTransparent(source, pixels, uvX, uvY, uvW, uvH) : false;
-        return new Texture(source, pixels, uvX, uvY, uvW, uvH, rotate, transparency);
+        return new Texture(source, pixels, x, y, w, h, rotate, transparency);
     }
 
     /**
@@ -163,6 +163,8 @@ public record Texture(BufferedImage source, int[] pixels, float x, float y, floa
      */
     private static boolean isEmpty(int[] pixels, int srcW, int x, int y, int w, int h) {
         final int maxScan = 2000;
+
+        if (w == 0 || h == 0) return false;
 
         /* Handles negative sizes */
         if (w < 0) {
