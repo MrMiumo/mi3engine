@@ -143,13 +143,13 @@ public class ModelParser extends RenderTool {
         /* Try with the pack texture first */
         if (texturesFolder != null) {
             var path = texturesFolder.resolve(name + ".png");
-            if (Files.exists(path)) return Texture.from(ImageIO.read(Files.newInputStream(path)));
+            if (Files.exists(path)) return Texture.from(name, ImageIO.read(Files.newInputStream(path)));
         }
 
         /* Try with vanilla textures then */
         if (defaultTextures != null) {
             var path = defaultTextures.resolve(name + ".png");
-            if (Files.exists(path)) return Texture.from(ImageIO.read(Files.newInputStream(path)));
+            if (Files.exists(path)) return Texture.from(name, ImageIO.read(Files.newInputStream(path)));
         }
         
         /* Texture not found */

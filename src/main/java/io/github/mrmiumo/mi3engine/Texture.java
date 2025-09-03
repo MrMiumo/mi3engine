@@ -9,6 +9,7 @@ import java.util.Random;
 
 /**
  * Image or portion of an image used to be paint over model faces.
+ * @param name the name of this texture, only used for debug
  * @param source the image to use for this texture
  * @param pixels internal variable used for read source pixels faster
  * @param x the x coordinate of the top-left corner of the uv box
@@ -19,7 +20,10 @@ import java.util.Random;
  * @param isTransparent whether or not this texture has transparency.
  *     DO NOT SET THIS VALUE BY YOURSELF
  */
-public record Texture(BufferedImage source, int[] pixels, float x, float y, float w, float h, int rotate, boolean isTransparent) {
+public record Texture(
+    String name, BufferedImage source, int[] pixels, float x, float y,
+    float w, float h, int rotate, boolean isTransparent
+) {
 
     /** Iterator over each default texture colorSet available */
     private static int nextColorSet = 0;
@@ -27,16 +31,17 @@ public record Texture(BufferedImage source, int[] pixels, float x, float y, floa
     /**
      * Creates a new texture from the given image. The uv box uses the
      * full image and no rotation is applied.
+     * @param name the name of this texture (for debug only)
      * @param img the image to use as texture
      */
-    public static Texture from(BufferedImage img) {
+    public static Texture from(String name, BufferedImage img) {
         var w = img.getWidth();
         var h = img.getHeight();
         var pixels = getPixels(img);
         if (isEmpty(pixels, w, 0, 0, w, h)) {
             return null;
         }
-        return new Texture(img, pixels, 0, 0, w, h, 0, isTransparent(img, pixels, 0, 0, w, h));
+        return new Texture(name, img, pixels, 0, 0, w, h, 0, isTransparent(img, pixels, 0, 0, w, h));
     }
 
     /**
@@ -70,7 +75,7 @@ public record Texture(BufferedImage source, int[] pixels, float x, float y, floa
         }
 
         var transparency = isTransparent ? isTransparent(source, pixels, uvX, uvY, uvW, uvH) : false;
-        return new Texture(source, pixels, x, y, w, h, rotate, transparency);
+        return new Texture(name, source, pixels, x, y, w, h, rotate, transparency);
     }
 
     /**
@@ -146,7 +151,7 @@ public record Texture(BufferedImage source, int[] pixels, float x, float y, floa
         canvas.fillRect(1, 15, 15, 1);
 
         canvas.dispose();
-        return new Texture(image, getPixels(image), 0, 0, 16, 16, 0, false);
+        return new Texture("default#" + (nextColorSet - 1), image, getPixels(image), 0, 0, 16, 16, 0, false);
     
     }
 
