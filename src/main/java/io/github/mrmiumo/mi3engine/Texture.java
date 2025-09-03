@@ -105,8 +105,10 @@ public record Texture(
             u = 1 - v;
             v = t;
         }
-        var tx = (int)clamp(x + (int)(u * w), 0, source.getWidth() - 1);
-        var ty = (int)clamp(y + (int)(v * h), 0, source.getHeight() - 1);
+        var lclX = w < 0 ? x - 1 : x;
+        var lclY = h < 0 ? y - 1 : y;
+        var tx = (int)clamp(lclX + (int)(u * w), 0, source.getWidth() - 1);
+        var ty = (int)clamp(lclY + (int)(v * h), 0, source.getHeight() - 1);
         return pixels[ty * source.getWidth() + tx];
     }
 
