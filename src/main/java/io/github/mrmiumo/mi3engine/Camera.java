@@ -37,7 +37,7 @@ public class Camera {
      * @return this config
      */
     public Camera setRotation(int x, int y, int z) {
-        camRotation = new Vec(-x, 180 - y, z);
+        camRotation = new Vec(-x, 180 - y, -z);
         return this;
     }
 
@@ -48,7 +48,7 @@ public class Camera {
      * @return the rotation currently set up
      */
     public Vec getRotation() {
-        return new Vec(- camRotation.x(), 180 - camRotation.y(), camRotation.z());
+        return new Vec(- camRotation.x(), 180 - camRotation.y(), - camRotation.z());
     }
 
     /**

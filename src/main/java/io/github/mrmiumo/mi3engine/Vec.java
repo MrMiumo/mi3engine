@@ -86,20 +86,23 @@ public record Vec(double x, double y, double z) {
         double sinY = Math.sin(yaw);
         double cosZ = Math.cos(roll);
         double sinZ = Math.sin(roll);
-
-        // Y
-        double x1 =  cosY * x +  sinY * z;
-        double y1 =  y;
-        double z1 = -sinY * x +  cosY * z;
         // X
-        double x2 = x1;
-        double y2 =  cosX * y1 - sinX * z1;
-        double z2 =  sinX * y1 + cosX * z1;
+        double xx = cosY * cosZ;
+        double xy = -cosY * sinZ;
+        double xz = sinY;
+        // Y
+        double yx = sinX * sinY * cosZ + cosX * sinZ;
+        double yy = -sinX * sinY * sinZ + cosX * cosZ;
+        double yz = -sinX * cosY;
         // Z
-        double x3 =  cosZ * x2 - sinZ * y2;
-        double y3 =  sinZ * x2 + cosZ * y2;
-        double z3 =  z2;
+        double zx = -cosX * sinY * cosZ + sinX * sinZ;
+        double zy = cosX * sinY * sinZ + sinX * cosZ;
+        double zz = cosX * cosY;
 
-        return new Vec(x3, y3, z3);
+        return new Vec(
+            xx * x + xy * y + xz * z,
+            yx * x + yy * y + yz * z,
+            zx * x + zy * y + zz * z
+        );
     }
 }
