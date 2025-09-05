@@ -31,17 +31,17 @@ import io.github.mrmiumo.mi3engine.Cube.Face;
  */
 public class ModelParser extends RenderTool {
 
-    /** Lists of all textures with their ID and image */
-    private final HashMap<String, TextureHolder> textures = new HashMap<>();
-
     /** The mapper used to decode JSON */
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
+    /** Path of the default textures if set in 'default.minecraft.pack' */
+    private static Path defaultTextures = loadProperty();
+
+    /** Lists of all textures with their ID and image */
+    private final HashMap<String, TextureHolder> textures = new HashMap<>();
+
     /** Path of the textures folder in the pack being parsed */
     private Path texturesFolder;
-
-    /** Path of the default textures if set in 'default.minecraft.pack' */
-    private final Path defaultTextures = loadProperty();
 
     /**
      * Creates and initializes a new parser. Don't forget to setup
@@ -82,13 +82,14 @@ public class ModelParser extends RenderTool {
         parseTextures(json.get("textures"));
         
         var parent = json.get("parent");
-        if (parent != null) {
+        var elements = json.get("elements");
+        if (elements == null && parent != null) {
             /* Inheritance: parse the parent and override textures */
             var path = file.toAbsolutePath().toString()
                 .replace("\\", "/")
                 .replaceFirst("assets/minecraft/models/.*", "assets/minecraft/models/");
             parseInternal(Path.of(path).resolve(parent.asText() + ".json"));
-        } else {
+        } else if (elements != null) {
             /* Normal model */
             json.get("elements").elements().forEachRemaining(element -> parseElement(element));
         }
@@ -286,6 +287,19 @@ public class ModelParser extends RenderTool {
             }
         } catch (IOException e) {}
         return null;
+    }
+
+    /**
+     * Sets the path of the default resource pack folder. If the
+     * 'default.minecraft.pack' property is already defined, no need
+     * to use this function!
+     * @param location the path of the default minecraft resource pack
+     */
+    public static void setDefaultPack(Path location) {
+        if (location == null) return;
+        location = location.resolve("assets/minecraft/textures");
+        if (!Files.exists(location)) return;
+        defaultTextures = location;
     }
 
     private class TextureHolder {
