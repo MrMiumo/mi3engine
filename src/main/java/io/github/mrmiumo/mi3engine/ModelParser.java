@@ -1,6 +1,7 @@
 package io.github.mrmiumo.mi3engine;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
@@ -83,7 +84,10 @@ public class ModelParser extends RenderTool {
         
         var parent = json.get("parent");
         var elements = json.get("elements");
-        if (elements == null && parent != null) {
+        if (elements == null && parent != null && "item/generated".equals(parent.asText())) {
+            /* Special parent that generates a model from a single texture */
+            parseGenerated();
+        } else if (elements == null && parent != null) {
             /* Inheritance: parse the parent and override textures */
             var path = file.toAbsolutePath().toString()
                 .replace("\\", "/")
@@ -268,6 +272,93 @@ public class ModelParser extends RenderTool {
         });
         return list;
     }
+
+    /**
+     * Parse a model using 'item/generated' as a parent. This special
+     * parent creates a model out of a single image. This image will
+     * be extruded to have a depth of 1.
+     */
+    private void parseGenerated() {
+        var texture = textures.get("#layer0").get();
+        if (texture == null) return; // Invalid!
+
+        var pixels = texture.pixels();
+        int height = texture.source().getHeight();
+        int width = texture.source().getWidth();
+        var depth = height / 16;
+
+        var covered = new boolean[height * width];
+        var solid = new boolean[width * height];
+        for (var i = 0 ; i < solid.length ; i++) {
+            solid[i] = (pixels[i] >>> 24) >= 254;
+        }
+
+        for (var y = 0 ; y < height ; y++) {
+            for (var x = 0 ; x < width ; x++) {
+                int offset = y * width + x;
+                if (!solid[offset] || covered[offset]) continue;
+
+                /* Find the widest possible rectangle */
+                var recW = 0;
+                while (x + recW < width && !covered[offset + recW] && solid[offset + recW]) {
+                    recW++;
+                }
+
+                /* Expand downwards */
+                int recH = 1;
+                int minW = recW;
+                while (y + recH < height) {
+                    int rowStart = (y + recH) * width + x;
+                    int w = 0;
+                    while (w < minW && !covered[rowStart + w] && solid[rowStart + w]) {
+                        w++;
+                    }
+                    if (w == 0) break;
+                    minW = w;
+                    recH++;
+                }
+
+                engine.addCube(generateCube(texture, x, y, recW, recH, depth));
+
+                /* Mark all pixels covered by this cube */
+                for (int i = y; i < y + recH; i++) {
+                    Arrays.fill(covered, i * width + x, i * width + x + recW, true);
+                }
+                x += minW - 1;
+            }
+        }
+    }
+
+    /**
+     * Builds a new textures cube part of a generated item.
+     * @param texture the texture to apply on the cube
+     * @param x the x coordinate of the cube
+     * @param y the y coordinate of the cube
+     * @param w the width of the cube to create
+     * @param h the height of the cube to create
+     * @param depth the depth of the cube (z axis)
+     * @return the cube!
+     */
+    private static Cube generateCube(Texture texture, int x, int y, int w, int h, int depth) {
+        var width = texture.source().getWidth();
+        var height = texture.source().getHeight();
+
+        var u = 16f / width;
+        var v = 16f / height;
+
+        var cube = Cube.from(new Vec(x, - y, 0), new Vec(x + w, -y - h, depth))
+            .texture(Face.NORTH, texture, 0, (x + w) * u, y * v, x * u, (y + h) * v)
+            .texture(Face.EAST,  texture, 0, (x + w - 1) * u, y * v, (x + w) * u, (y + h) * v)
+            .texture(Face.DOWN,  texture, 0, x * u, (y + h) * v, (x + w) * u, (y + h - 1) * v)
+            .texture(Face.SOUTH, texture, 0, x * u, y * v, (x + w) * u, (y + h) * v)
+            .texture(Face.WEST,  texture, 0, x * u, y * v, (x + 1) * u, (y + h) * v)
+            .texture(Face.UP,    texture, 0, x * u, y * v, (x + w) * u, (y + 1) * v);
+        return cube.build();
+    }
+
+
+
+
 
     /**
      * Loads the 'default.minecraft.pack' property from the file
