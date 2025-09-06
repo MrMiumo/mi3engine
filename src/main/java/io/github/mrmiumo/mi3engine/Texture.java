@@ -64,17 +64,12 @@ public record Texture(
             h = h * source.getHeight() / 16f;
         }
 
-        var uvX = (int)x;
-        var uvY = (int)y;
-        var uvW = (int)w;
-        var uvH = (int)h;
-
         /* Make sure the face have pixels */
-        if (isEmpty(pixels, source.getWidth(), uvX, uvY, uvW, uvH)) {
+        if (isEmpty(pixels, source.getWidth(), x, y, w, h)) {
             return null; // No need for texture!
         }
 
-        var transparency = isTransparent ? isTransparent(source, pixels, uvX, uvY, uvW, uvH) : false;
+        var transparency = isTransparent ? isTransparent(source, pixels, x, y, w, h) : false;
         return new Texture(name, source, pixels, x, y, w, h, rotate, transparency);
     }
 
@@ -124,8 +119,8 @@ public record Texture(
             new int[]{ 0x81bccc, 0x77acbb, 0x74a8b6, 0x6a99a6 },      // Blue
             new int[]{ 0xccc67a, 0xbbb670, 0xb6b16d, 0xa6a264 }       // Gold
         };
-        var colors = colorsSets[nextColorSet];
-        nextColorSet = ++nextColorSet % colorsSets.length;
+        var colors = colorsSets[nextColorSet++];
+        nextColorSet %= colorsSets.length;
         var image = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
         var canvas = image.getGraphics();
 
@@ -168,26 +163,24 @@ public record Texture(
      * @param h the height of the UV box
      * @return true if no visible pixel exists in the UV box, false otherwise
      */
-    private static boolean isEmpty(int[] pixels, int srcW, int x, int y, int w, int h) {
+    private static boolean isEmpty(int[] pixels, int srcW, float x, float y, float w, float h) {
         final int maxScan = 2000;
 
         if (w == 0 || h == 0) return false;
 
         /* Handles negative sizes */
-        if (w < 0) {
-            w *= -1;
-            x -= w;
-        }
-        if (h < 0) {
-            h *= -1;
-            y -= h;
-        }
+        if (w < 0) { w *= -1; x -= w; }
+        if (h < 0) { h *= -1; y -= h; }
+        var uvX = (int)Math.floor(x);
+        var uvY = (int)Math.floor(y);
+        var uvW = (int)Math.ceil(w);
+        var uvH = (int)Math.ceil(h);
 
         /* Scan the image */
-        if (w * h <= maxScan) {
+        if (uvW * uvH <= maxScan) {
             /* Full Scan */
-            for (int j = y ; j < y + h ; j++) {
-                for (int i = x ; i < x + w ; i++) {
+            for (int j = uvY ; j < uvY + uvH ; j++) {
+                for (int i = uvX ; i < uvX + uvW ; i++) {
                     if ((pixels[j * srcW + i] >>> 24) > 0) {
                         return false;
                     }
@@ -197,8 +190,8 @@ public record Texture(
             /* Random scan */
             Random rnd = new Random(12345);
             for (int i = 0 ; i < maxScan ; i++) {
-                int rx = x + rnd.nextInt(w);
-                int ry = y + rnd.nextInt(h);
+                int rx = uvX + rnd.nextInt(uvW);
+                int ry = uvY + rnd.nextInt(uvH);
                 if ((pixels[ry * srcW + rx] >>> 24) > 0) return false;
             }
         }
@@ -217,28 +210,26 @@ public record Texture(
      * @return true if at least one transparent pixel got detected,
      *     false otherwise
      */
-    private static boolean isTransparent(BufferedImage source, int[] pixels, int x, int y, int w, int h) {
+    private static boolean isTransparent(BufferedImage source, int[] pixels, float x, float y, float w, float h) {
         /* No alpha channel = not transparent */
         if (!source.getColorModel().hasAlpha()) {
             return false;
         }
 
         /* Handles negative sizes */
-        if (w < 0) {
-            w *= -1;
-            x -= w;
-        }
-        if (h < 0) {
-            h *= -1;
-            y -= h;
-        }
+        if (w < 0) { w *= -1; x -= w; }
+        if (h < 0) { h *= -1; y -= h; }
+        var uvX = (int)Math.floor(x);
+        var uvY = (int)Math.floor(y);
+        var uvW = (int)Math.ceil(w);
+        var uvH = (int)Math.ceil(h);
 
         final int maxScan = 2000;
         final int width = source.getWidth();
-        if (w * h <= maxScan) {
+        if (uvW * uvH <= maxScan) {
             /* Full Scan */
-            for (int j = y ; j < y + h ; j++) {
-                for (int i = x ; i < x + w ; i++) {
+            for (int j = uvY ; j < uvY + uvH ; j++) {
+                for (int i = uvX ; i < uvX + uvW ; i++) {
                     if ((pixels[j * width + i] >>> 24) < 255) return true;
                 }
             }
@@ -246,8 +237,8 @@ public record Texture(
             /* Random scan */
             Random rnd = new Random(12345);
             for (int i = 0 ; i < maxScan ; i++) {
-                int rx = x + rnd.nextInt(w);
-                int ry = y + rnd.nextInt(h);
+                int rx = uvX + rnd.nextInt(uvW);
+                int ry = uvY + rnd.nextInt(uvH);
                 if ((pixels[ry * width + rx] >>> 24) < 255) return true;
             }
         }
