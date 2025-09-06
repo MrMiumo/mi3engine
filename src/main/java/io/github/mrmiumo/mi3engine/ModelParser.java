@@ -113,7 +113,6 @@ public class ModelParser extends RenderTool {
      */
     private void parseTextures(JsonNode json) {
         json.properties().stream()
-            .filter(p -> !"particle".equals(p.getKey()))
             .forEach(p -> {
                 var value = p.getValue().asText();
                 Function<String, TextureHolder> mapper;
