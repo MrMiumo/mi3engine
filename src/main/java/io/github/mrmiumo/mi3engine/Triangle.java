@@ -39,7 +39,7 @@ public record Triangle(TriVertex a, TriVertex b, TriVertex c, Texture texture, d
             texture,
             computeIntensity(normal),
             !texture.isTransparent(),
-            (a.depth() + b.depth() + c.depth()) / 3.0
+            RenderUtils.max(a.depth(), b.depth(), c.depth())
         );
     }
 
