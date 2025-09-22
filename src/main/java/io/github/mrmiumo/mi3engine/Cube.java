@@ -10,7 +10,7 @@ import java.util.EnumMap;
  * @param pivot the rotation origin point (nullable)
  * @param textures the texture applied to each face of the cube
  */
-public record Cube(Vec size, Vec position, Vec rotation, Vec pivot, EnumMap<Face, Texture> textures) {
+public record Cube(Vec size, Vec position, Vec rotation, Vec pivot, EnumMap<Face, Texture> textures) implements Element {
     private final static Vec CENTER_OFFSET = new Vec(8, -8, -8);
 
     /**
@@ -62,46 +62,32 @@ public record Cube(Vec size, Vec position, Vec rotation, Vec pivot, EnumMap<Face
         textures.put(face, texture);
     }
 
-    /**
-     * Gets the texture of the given face
-     * @param face the face to get the texture from
-     * @return the associated texture, null if not set
-     */
+    @Override
     public Texture getTexture(Face face) {
         return textures.get(face);
     }
 
-    /**
-     * Names of the cube faces
-     */
-    public static enum Face {
-        /** The front face */
-        SOUTH,
-        /** The back face */
-        NORTH,
-        /** The top face */
-        UP,
-        /** The bottom face */
-        DOWN,
-        /** The left face */
-        EAST,
-        /** The right face */
-        WEST;
-    }
+    @Override
+    public Vec[] localVertices() {
+        Vec[] localVerts = new Vec[8];
+        localVerts[0] = new Vec(0,        0,        0);
+        localVerts[1] = new Vec(0,        0,        size.z());
+        localVerts[2] = new Vec(0,        size.y(), 0);
+        localVerts[3] = new Vec(0,        size.y(), size.z());
 
-    /**
-     * Represent each of the 3 axis.
-     */
-    public static enum Axis {
-
-        /** The X axis (left/right) */
-        X,
-
-        /** The Y axis (top/bottom) */
-        Y,
-
-        /** The Z axis (front/back) */
-        Z;
+        localVerts[4] = new Vec(size.x(), 0,        0);
+        localVerts[5] = new Vec(size.x(), 0,        size.z());
+        localVerts[6] = new Vec(size.x(), size.y(), 0);
+        localVerts[7] = new Vec(size.x(), size.y(), size.z());
+        int idx = 0;
+        for (int xi = 0 ; xi <= 1 ; xi++) {
+            for (int yi = 0 ; yi <= 1 ; yi++) {
+                for (int zi = 0 ; zi <= 1 ; zi++) {
+                    localVerts[idx++] = new Vec(xi * size.x(), yi * size.y(), zi * size.z());
+                }
+            }
+        }
+        return localVerts;
     }
 
     /**
@@ -144,18 +130,18 @@ public record Cube(Vec size, Vec position, Vec rotation, Vec pivot, EnumMap<Face
             
             return new Builder(
                 new Vec(-x, y, z),
-                new Vec(-Math.abs(dx), Math.abs(dy), Math.abs(dz))
+                new Vec(Math.abs(dx), Math.abs(dy), Math.abs(dz))
             );
         }
 
         /**
-         * Creates a new cube builder defined by its size only.
-         * @param from coordinates of one corner of the cube
-         * @param to coordinates of the opposite corner
+         * Creates a new cube builder defined by its position and size.
+         * @param position coordinates of one corner of the cube
+         * @param size the size on each axis of the cube
          */
-        private Builder(Vec position, Vec size) {
+        public Builder(Vec position, Vec size) {
             this.position = position;
-            this.size = size;
+            this.size = new Vec(-size.x(), size.y(), size.z());
         }
 
         /**
@@ -175,6 +161,18 @@ public record Cube(Vec size, Vec position, Vec rotation, Vec pivot, EnumMap<Face
         }
 
         /**
+         * Sets a rotation value for this cube. This method enables to
+         * set rotation on multiple axis. This should NOT be used with
+         * Minecraft models since they do not allow multiple axis rotation.
+         * @param rot the rotation to set
+         * @return this builder
+         */
+        public Builder rotation(Vec rot) {
+            rotation = new Vec(rot.x(), -rot.y(), -rot.z());
+            return this;
+        }
+
+        /**
          * Sets a rotation pivot point for this cube.
          * @param x the x coordinate of the pivot point
          * @param y the y coordinate of the pivot point
@@ -183,6 +181,17 @@ public record Cube(Vec size, Vec position, Vec rotation, Vec pivot, EnumMap<Face
          */
         public Builder pivot(double x, double y, double z) {
             this.pivot = new Vec(-x - position.x(), y - position.y(), z - position.z());
+            return this;
+        }
+        
+        /**
+         * Sets a rotation pivot point for this cube. This method is a
+         * raw setter that does not takes the position into account.
+         * @param v the vector containing all pivot coordinates
+         * @return this builder
+         */
+        public Builder pivot(Vec v) {
+            this.pivot = v;
             return this;
         }
 
@@ -255,7 +264,7 @@ public record Cube(Vec size, Vec position, Vec rotation, Vec pivot, EnumMap<Face
          * @param engine the engine to add the cube to
          */
         public void render(RenderEngine engine) {
-            engine.addCube(build());
+            engine.addElement(build());
         }
     }
 }

@@ -3,6 +3,7 @@ package io.github.mrmiumo.mi3engine;
 import java.awt.image.BufferedImage;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Orthographic headless renderer for textures cubes. Each cube can
@@ -16,6 +17,16 @@ import java.util.List;
  */
 public interface RenderEngine {
 
+    /** Faces defined explicitly any element */
+    static final int[][] FACES = {
+        {1,5,7,3}, // +X
+        {0,2,6,4}, // -X
+        {2,3,7,6}, // +Y
+        {0,4,5,1}, // -Y
+        {4,6,7,5}, // +Z
+        {0,1,3,2}  // -Z
+    };
+    
     /**
      * Creates a new engine. One engine can be created to generate
      * pictures of a given size. Once created, one engine can be used
@@ -59,14 +70,14 @@ public interface RenderEngine {
      * @param cube the cube to add
      * @return this engine
      */
-    public RenderEngine addCube(Cube cube);
+    public RenderEngine addElement(Element cube);
 
     /**
      * Adds multiple new cubes to the scene
      * @param cubes the cubes to add
      * @return this engine
      */
-    public RenderEngine addCubes(Collection<Cube> cubes);
+    public RenderEngine addElements(Collection<Element> cubes);
 
     /**
      * Reset the scene by removing all the cubes
@@ -78,7 +89,7 @@ public interface RenderEngine {
      * Enables to get a copy of all the cubes currently in the engine.
      * @return the list of cubes set in the engine
      */
-    public List<Cube> getCubes();
+    public List<Element> getElements();
     
     /**
      * Gets the size of the output image currently setup
@@ -99,4 +110,42 @@ public interface RenderEngine {
      * @param y the y coordinate of the vector
      */
     public static record Vec2(double x, double y) { }
+
+    /**
+     * Creates a lambda that converts a vector from the model coordinates
+     * to the world coordinates.
+     * Aka, applies rotation and position of the given element to the
+     * given point to compute its transformed position.
+     * @param cube the cube to generate the conversion function for
+     * @return the convert function
+     */
+    static Function<Vec, Vec> modelToWorld(Element cube) {
+        final double rx = Math.toRadians(cube.rotation().x());
+        final double ry = Math.toRadians(cube.rotation().y());
+        final double rz = Math.toRadians(cube.rotation().z());
+        final double crx = Math.cos(rx), srx = Math.sin(rx);
+        final double cry = Math.cos(ry), sry = Math.sin(ry);
+        final double crz = Math.cos(rz), srz = Math.sin(rz);
+
+        return (Vec p) -> {
+            double x = p.x() - cube.pivot().x();
+            double y = p.y() - cube.pivot().y();
+            double z = p.z() - cube.pivot().z();
+            // Rx
+            double x1 = x;
+            double y1 = y * crx - z * srx;
+            double z1 = y * srx + z * crx;
+            // Ry
+            double x2 = x1 * cry + z1 * sry;
+            double y2 = y1;
+            double z2 = -x1 * sry + z1 * cry;
+            // Rz
+            double x3 = x2 * crz - y2 * srz;
+            double y3 = x2 * srz + y2 * crz;
+            double z3 = z2;
+            return new Vec(x3 + cube.pivot().x() + cube.position().x(),
+                            y3 + cube.pivot().y() + cube.position().y(),
+                            z3 + cube.pivot().z() + cube.position().z());
+        };
+    }
 }

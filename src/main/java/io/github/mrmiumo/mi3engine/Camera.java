@@ -6,13 +6,13 @@ package io.github.mrmiumo.mi3engine;
 public class Camera {
 
     /** The intensity of the ambient light */
-    public static final float AMBIENT = 0.6f;
+    private float ambient = 0.6f;
 
-    /** The intensity of the diffuse light (spot light) */
-    public static final float DIFFUSE = 9f;
+    /** The intensity of the spot light (diffuse) */
+    private float spot = 9f;
 
     /** The position of the light source */
-    public static final Vec LIGHT_DIRECTION = new Vec(0, 1, 0).normalize();
+    private Vec spotDirection = new Vec(0, 1, 0).normalize();
 
     /** The zoom level of the camera (scale factor) */
     private double zoom = 1.0;
@@ -114,5 +114,63 @@ public class Camera {
      */
     public double zoom() {
         return zoom;
+    }
+
+    /**
+     * Changes the default ambient light intensity. Ambient light
+     * corresponds to the minimum light intensity for areas that does
+     * not receive any light.
+     * @param light the intensity of the ambient light
+     * @return this config
+     */
+    public Camera setAmbientLight(float light) {
+        this.ambient = light;
+        return this;
+    }
+
+    /**
+     * Gets the configured ambient light intensity.
+     * @return the ambient light
+     */
+    public float ambientLight() {
+        return ambient;
+    }
+
+    /**
+     * Changes the default spot light intensity. Spot light
+     * corresponds to a diffuse source that illuminate elements faces
+     * based on their orientation like a real light source would do.
+     * @param light the intensity of the spot light
+     * @return this config
+     */
+    public Camera setSpotLight(float light) {
+        this.spot = light;
+        return this;
+    }
+
+    /**
+     * Gets the configured spot light intensity.
+     * @return the spot light
+     */
+    public float spotLight() {
+        return spot;
+    }
+
+    /**
+     * Changes the default spot light position direction.
+     * @param direction the orientation of the spot light
+     * @return this config
+     */
+    public Camera setSpotDirection(Vec direction) {
+        this.spotDirection = direction.normalize();
+        return this;
+    }
+
+    /**
+     * Gets the configured spot light direction.
+     * @return the spot light
+     */
+    public Vec spotDirection() {
+        return spotDirection;
     }
 }

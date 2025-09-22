@@ -21,6 +21,8 @@ import javax.swing.JLabel;
 
 import io.github.mrmiumo.mi3engine.ModelParser;
 import io.github.mrmiumo.mi3engine.RenderEngine;
+import io.github.mrmiumo.mi3engine.SkinRender;
+import io.github.mrmiumo.mi3engine.Vec;
 
 /**
  * Very basic monitor to visualize engine output in real time and
@@ -56,12 +58,12 @@ public class Monitor extends JFrame {
      * Creates and opens a window to display the engine output.
      * @param width the width of the image to generate
      * @param height the height of the image to generate
-     * @param model the path of the model to display
+     * @param engine the engine to use for rendering
      * @throws IOException in case of error while parsing the file
      */
-    public Monitor(int width, int height, Path model) throws IOException {
-        engineHQ = new ModelParser(RenderEngine.from(width, height)).parse(model);
-        engineFast = RenderEngine.from(width / 2, height / 2).addCubes(engineHQ.getCubes());
+    public Monitor(int width, int height, RenderEngine engine) throws IOException {
+        engineHQ = engine;
+        engineFast = RenderEngine.from(width / 2, height / 2).addElements(engineHQ.getElements());
         engineFast.setCamera(engineHQ.camera());
         engineHQ.camera()
             .setRotation(25, 35, 0)
@@ -186,21 +188,37 @@ public class Monitor extends JFrame {
      * @throws InterruptedException in case of error while sleeping
      */
     public static void main(String[] args) throws IOException, InterruptedException {
-        var pack = Path.of("C:/Path/to/the/resource-pack");
-        var model = pack.resolve("assets/minecraft/models/item/myModel.json");
-                
-        var window = new Monitor(1287, 1287, model);
-        System.out.print("");
+        /* Engine to display a model */
+        // var pack = Path.of("C:/Path/to/the/resource-pack");
+        // var model = pack.resolve("assets/minecraft/models/item/myModel.json");
+        // var modelEngine = new ModelParser(RenderEngine.from(1287, 1287)).parse(model);
+        
+        /* Engine to display a skin */
+        var path = Path.of("MySkin.png");
+        var skinEngine = new SkinRender(RenderEngine.from(1287, 1287), path);
+        skinEngine.camera()
+            .setAmbientLight(0.05f)
+            .setSpotLight(7)
+            .setSpotDirection(new Vec(-1, 1, -.15));
+        skinEngine.render();
 
+        /* Monitor launching */
+        var window = new Monitor(1287, 1287, skinEngine);
+        var i = 0;
+        var start = System.currentTimeMillis();
         while (true) {
-            var start = System.currentTimeMillis();
             if (window.frameRendered) {
                 Thread.sleep(1000 / 30);
             } else {
                 window.renderImage();
             }
+            i++;
             var elapsed = System.currentTimeMillis() - start;
-            System.out.print("\r" + (1000 / elapsed) + " FPS     ");
+            if (elapsed >= 500) {
+                System.out.print("\r" + (int)(1000.0 / (elapsed / i)) + " FPS     ");
+                start = System.currentTimeMillis();
+                i = 0;
+            }
         }
     }
 }

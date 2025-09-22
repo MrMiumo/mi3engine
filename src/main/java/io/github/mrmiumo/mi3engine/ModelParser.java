@@ -19,8 +19,8 @@ import java.io.UncheckedIOException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.github.mrmiumo.mi3engine.Cube.Axis;
-import io.github.mrmiumo.mi3engine.Cube.Face;
+import io.github.mrmiumo.mi3engine.Element.Axis;
+import io.github.mrmiumo.mi3engine.Element.Face;
 
 /**
  * Parse a model file inside a Minecraft resource pack: loads the
@@ -227,7 +227,7 @@ public class ModelParser extends RenderTool {
             });
         }
 
-        engine.addCube(cube.build());
+        engine.addElement(cube.build());
     }
 
     /**
@@ -318,7 +318,7 @@ public class ModelParser extends RenderTool {
                     recH++;
                 }
 
-                engine.addCube(generateCube(texture, x, y, recW, recH, depth));
+                engine.addElement(generateCube(texture, x, y, recW, recH, depth));
 
                 /* Mark all pixels covered by this cube */
                 for (int i = y; i < y + recH; i++) {

@@ -5,9 +5,10 @@
 ##### Table of Contents  
 - [Performances](#performances)  
 - [Usage](#usage) :
-  - [Manual](#manual)  
-  - [Model Parser Tool](#modelParser)  
-  - [Auto Framer Tool](#autoFramer)  
+  - [Manual](#manual)
+  - [Model Parser Tool](#modelParser)
+  - [Skin Render Tool](#skinRender)
+  - [Auto Framer Tool](#autoFramer)
 - [Future](#future)
 
 ## Performances
@@ -21,7 +22,7 @@ This engine is written in Java 17 (maybe compatible with Java 15 but not tested)
 <dependency>
     <groupId>io.github.mrmiumo</groupId>
     <artifactId>mi3engine</artifactId>
-    <version>1.0.2</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 Once imported in your project, you can use it by yourself (creating and adding cubes one by one) or using tools.
@@ -93,6 +94,50 @@ default.minecraft.pack=/myApp/assets/minecraftDefaultTextures
 ```
 This configuration is important since most models rely on default game's textures and those are not embedded in the engine.
 
+### Skin Render Tool
+<a name="skinRender"></a>
+This tools enables to create skin render with custom poses. This module is not perfect yet and lacks a few features. Here is the list of features support:
+| Feature         | Description                           | Supported since   |
+|-----------------|---------------------------------------|:-----------------:|
+| Basic Poses     | Move head, arms and legs              | `v1.1.0`          |
+| Arm bending     | Curvate each arm at elbows            | `v1.1.0`          |
+| Leg bending     | Curvate each leg at knees             | :x:               |
+| Second layer    | Upper skin layer is rendered          | `v1.1.0`          |
+| 3D Second layer | Improved second layer with true depth | :x:               |
+| Item holding    | Enable to add items in hands          | *Not planned yet* |
+| Armor           | Equip armor pieces on the player      | *Not planned yet* |
+
+Here is an example of usage:
+
+```java
+/* Step 1. Create a new parser with an engine */
+Path mySkin = Path.of("path/to/myskin.png");
+SkinRender engine = new SkinRender(RenderEngine.from(1287, 1287), mySkin);
+
+/* Step 2. Setup the camera */
+engine.camera()
+    .setRotation(5, 25, 0)
+    .setTranslation(0, 0)
+    .setZoom(0.4)
+    .setAmbientLight(0.05f)
+    .setSpotLight(7)
+    .setSpotDirection(new Vec(-1, 1, -.15));
+
+/* Step 3. Use the tool to create a pose */
+engine.head(new Vec(-5, -8, 3))
+    .rightArm(new Vec(-70, 75, 30), 75)
+    .leftArm(new Vec(0, 0, 0), 0)
+    .leftArm(new Vec(0, 25, 10), 35)
+    .rightLeg(new Vec(5, -20, -5))
+    .leftLeg(new Vec(25, -10, 15));
+
+/* Step 4. Render the image */
+BufferedImage output = engine.render();
+
+/* Step 5. Save the image */
+ImageIO.write(output, "PNG", Files.newOutputStream("MyImage.png"));
+```
+
 ### AutoFramer Tool
 <a name="autoFramer"></a>
 The AutoFramer tool is a patch above the render engine. It can be used alongside with any other tool!<br>
@@ -114,7 +159,3 @@ BufferedImage output = engine.render();
 /* Step 6. Save the image */
 ImageIO.write(output, "PNG", Files.newOutputStream("MyImage.png"));
 ```
-
-## Future
-<a name="future"></a>
-A player module is planned to be added to create custom poses and render skins!

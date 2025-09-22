@@ -2,7 +2,7 @@ package io.github.mrmiumo.mi3engine;
 
 import java.awt.image.BufferedImage;
 
-import io.github.mrmiumo.mi3engine.Cube.Face;
+import io.github.mrmiumo.mi3engine.Element.Face;
 
 /**
  * Tools that enables to automatically center the object in the final
@@ -83,14 +83,14 @@ public class AutoFramer extends RenderTool {
         final var cam = camera();
 
         /* Create triangles from boxes */
-        for (Cube cube : engine.getCubes()) {
-            final Vec[] localVerts = RenderCore.localVertices(cube);
-            final var modelPoint = RenderCore.modelToWorld(cube);
+        for (var cube : engine.getElements()) {
+            final Vec[] localVerts = cube.localVertices();
+            final var modelPoint = RenderEngine.modelToWorld(cube);
 
             /* Generates triangles for each face */
             for (var face : Face.values()) {
                 if (cube.getTexture(face) == null) continue;
-                int[] idxs = RenderCore.FACE_VERTEX_IDS[face.ordinal()];
+                int[] idxs = FACES[face.ordinal()];
 
                 Vec2[] position = new Vec2[4];
                 for (int k = 0 ; k < 4 ; k++) {

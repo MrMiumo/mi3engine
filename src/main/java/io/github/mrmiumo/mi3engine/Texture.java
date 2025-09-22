@@ -33,6 +33,7 @@ public record Texture(
      * full image and no rotation is applied.
      * @param name the name of this texture (for debug only)
      * @param img the image to use as texture
+     * @return the corresponding texture
      */
     public static Texture from(String name, BufferedImage img) {
         var w = img.getWidth();

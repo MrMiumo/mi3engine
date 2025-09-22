@@ -36,13 +36,13 @@ class RenderTool implements RenderEngine {
     }
 
     @Override
-    public RenderEngine addCube(Cube cube) {
-        return engine.addCube(cube);
+    public RenderEngine addElement(Element cube) {
+        return engine.addElement(cube);
     }
 
     @Override
-    public RenderEngine addCubes(Collection<Cube> cubes) {
-        return engine.addCubes(cubes);
+    public RenderEngine addElements(Collection<Element> cubes) {
+        return engine.addElements(cubes);
     }
 
     @Override
@@ -51,8 +51,8 @@ class RenderTool implements RenderEngine {
     }
 
     @Override
-    public List<Cube> getCubes() {
-        return engine.getCubes();
+    public List<Element> getElements() {
+        return engine.getElements();
     }
 
     @Override

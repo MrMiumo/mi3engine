@@ -7,9 +7,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.function.Function;
 
-import io.github.mrmiumo.mi3engine.Cube.Face;
+import io.github.mrmiumo.mi3engine.Element.Face;
 
 /**
  * Orthographic headless renderer for textures cubes. Each cube can
@@ -21,21 +20,11 @@ import io.github.mrmiumo.mi3engine.Cube.Face;
  */
 class RenderCore implements RenderEngine {
 
-    /** Face geometry indices */
-    static final int[][] FACE_VERTEX_IDS = {
-        {1,5,7,3}, // +X
-        {0,2,6,4}, // -X
-        {2,3,7,6}, // +Y
-        {0,4,5,1}, // -Y
-        {4,6,7,5}, // +Z
-        {0,1,3,2}  // -Z
-    };
-
     /** Correspondence table between triangle vertices and original rectangle */
     static final int[][] TRIANGLES = {{0, 1, 2}, {0, 2, 3}};
 
     /** List of all cubes to render */
-    final List<Cube> cubes = new ArrayList<>();
+    final List<Element> elements = new ArrayList<>();
 
     /** The camera settings */
     private Camera config = new Camera();
@@ -87,26 +76,26 @@ class RenderCore implements RenderEngine {
     }
 
     @Override
-    public RenderEngine addCube(Cube cube) {
-        cubes.add(cube);
+    public RenderEngine addElement(Element cube) {
+        elements.add(cube);
         return this;
     }
 
     @Override
-    public RenderEngine addCubes(Collection<Cube> cubes) {
-        this.cubes.addAll(cubes);
+    public RenderEngine addElements(Collection<Element> cubes) {
+        this.elements.addAll(cubes);
         return this;
     }
 
     @Override
     public RenderEngine clear() {
-        cubes.clear();
+        elements.clear();
         return this;
     }
 
     @Override
-    public List<Cube> getCubes() {
-        return List.copyOf(cubes);
+    public List<Element> getElements() {
+        return List.copyOf(elements);
     }
 
     @Override
@@ -127,15 +116,15 @@ class RenderCore implements RenderEngine {
         var zoom = config.zoom() * Math.min(width, height) / 1287;
 
         /* Create triangles from boxes */
-        for (Cube cube : cubes) {
-            final Vec[] localVerts = localVertices(cube);
-            final var modelPoint = modelToWorld(cube);
+        for (var element : elements) {
+            final Vec[] localVerts = element.localVertices();
+            final var modelPoint = RenderEngine.modelToWorld(element);
 
             /* Generates triangles for each face */
             for (var face : Face.values()) {
-                Texture tex = cube.getTexture(face);
+                Texture tex = element.getTexture(face);
                 if (tex == null) continue;
-                int[] idxs = FACE_VERTEX_IDS[face.ordinal()];
+                int[] idxs = FACES[face.ordinal()];
 
                 Vec2[] screenVerts = new Vec2[4];
                 double[] depthVals = new double[4];
@@ -149,7 +138,7 @@ class RenderCore implements RenderEngine {
                 }
                 
                 for (int[] points : TRIANGLES) {
-                    var triangle = Triangle.from(screenVerts, depthVals, points, tex);
+                    var triangle = Triangle.from(config, screenVerts, depthVals, points, tex);
                     if (triangle == null) continue;
                     if (triangle.opaque()) trianglesOpaque.add(triangle);
                     else trianglesTransparent.add(triangle);
@@ -169,61 +158,6 @@ class RenderCore implements RenderEngine {
         }
 
         return out;
-    }
-
-    /**
-     * Computes the local vertices for the given cube.
-     * @param cube the cube to computes vertices for
-     * @return the 8 vertices
-     */
-    static Vec[] localVertices(Cube cube) {
-        Vec s = cube.size();
-        Vec[] localVerts = new Vec[8];
-        int idx = 0;
-        for (int xi = 0 ; xi <= 1 ; xi++) {
-            for (int yi = 0 ; yi <= 1 ; yi++) {
-                for (int zi = 0 ; zi <= 1 ; zi++) {
-                    localVerts[idx++] = new Vec(xi * s.x(), yi * s.y(), zi * s.z());
-                }
-            }
-        }
-        return localVerts;
-    }
-
-    /**
-     * Creates a lambda that converts a vector from the model coordinates
-     * to the world coordinates.
-     * @param cube the cube to generate the conversion function for
-     * @return the convert function
-     */
-    static Function<Vec, Vec> modelToWorld(Cube cube) {
-        final double rx = Math.toRadians(cube.rotation().x());
-        final double ry = Math.toRadians(cube.rotation().y());
-        final double rz = Math.toRadians(cube.rotation().z());
-        final double crx = Math.cos(rx), srx = Math.sin(rx);
-        final double cry = Math.cos(ry), sry = Math.sin(ry);
-        final double crz = Math.cos(rz), srz = Math.sin(rz);
-
-        return (Vec p) -> {
-            double x = p.x() - cube.pivot().x();
-            double y = p.y() - cube.pivot().y();
-            double z = p.z() - cube.pivot().z();
-            // Rx
-            double x1 = x;
-            double y1 = y * crx - z * srx;
-            double z1 = y * srx + z * crx;
-            // Ry
-            double x2 = x1 * cry + z1 * sry;
-            double y2 = y1;
-            double z2 = -x1 * sry + z1 * cry;
-            // Rz
-            double x3 = x2 * crz - y2 * srz;
-            double y3 = x2 * srz + y2 * crz;
-            double z3 = z2;
-            return new Vec(x3 + cube.pivot().x() + cube.position().x(),
-                            y3 + cube.pivot().y() + cube.position().y(),
-                            z3 + cube.pivot().z() + cube.position().z());
-        };
     }
 
     /**
