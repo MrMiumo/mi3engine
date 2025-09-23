@@ -104,6 +104,7 @@ This tools enables to create skin render with custom poses. This module is not p
 | Leg bending     | Curvate each leg at knees             | :x:               |
 | Second layer    | Upper skin layer is rendered          | `v1.1.0`          |
 | 3D Second layer | Improved second layer with true depth | :x:               |
+| Slim skin       | 'Alex' skin with 3px large arms       | `v1.1.1`          |
 | Item holding    | Enable to add items in hands          | *Not planned yet* |
 | Armor           | Equip armor pieces on the player      | *Not planned yet* |
 

@@ -222,7 +222,7 @@ public record Cube(Vec size, Vec position, Vec rotation, Vec pivot, EnumMap<Face
         }
         
         /**
-         * Sets the texture to be used to pain the given face.
+         * Sets the texture to be used to paint the given face.
          * When using a BufferedImage for the texture, the following
          * code can be used. Make sure to not recreate the same texture
          * object twice for performances.
@@ -248,6 +248,23 @@ public record Cube(Vec size, Vec position, Vec rotation, Vec pivot, EnumMap<Face
                 case DOWN -> 0;
             };
             textures.put(face, texture.uv(x1, y1, x2 - x1, y2 - y1, rotate % 4));
+            return this;
+        }
+
+        /**
+         * Sets the texture to be used to paint the given face.
+         * When using a BufferedImage for the texture, the following
+         * code can be used. Make sure to not recreate the same texture
+         * object twice for performances.
+         * <pre>
+         *     new Texture(myBufferedImage);
+         * </pre>
+         * @param face the face to apply the texture to
+         * @param texture the texture to set
+         * @return this builder
+         */
+        Builder texture(Face face, Texture texture) {
+            textures.put(face, texture);
             return this;
         }
 
