@@ -42,13 +42,13 @@ public class SkinRender extends RenderTool {
      * - [4 : 9] RIGHT ARM base layer
      * - [10:15] RIGHT ARM second layer
      * - [16:21] LEFT ARM base layer
-     * - [22:28] LEFT ARM second layer
-     * - [29] RIGHT LEG base layer
-     * - [30] RIGHT LEG second layer
-     * - [31] LEFT LEG base layer
-     * - [32] LEFT LEG second layer
+     * - [22:27] LEFT ARM second layer
+     * - [28] RIGHT LEG base layer
+     * - [29] RIGHT LEG second layer
+     * - [30] LEFT LEG base layer
+     * - [31] LEFT LEG second layer
      */
-    private final Element[] parts = new Element[33];
+    private final Element[] parts = new Element[32];
 
     /**
      * Creates a new engine based on the given one. This is a tool to
@@ -67,23 +67,30 @@ public class SkinRender extends RenderTool {
             skin.getFileName().toString(),
             ImageIO.read(Files.newInputStream(skin))
         );
-        
-        head(new Vec(5, -8, -5));
         body();
-        rightArm(new Vec(-10, -15, -25), 45);
-        leftArm(new Vec(0, 0, 0), 10);
-        rightLeg(new Vec(15, 0, 0));
-        leftLeg(new Vec(-6, 0, 2));
     }
     
     @Override
     public BufferedImage render() {
         engine.clear();
+        lazyInit();
         for (var part : parts) {
             if (part == null) continue;
             engine.addElement(part);
         }
         return engine.render();
+    }
+
+    /**
+     * Initializes any body part that has not been configured yet.
+     */
+    private void lazyInit() {
+        final var zero = new Vec(0, 0, 0);
+        if (parts[0]  == null) head(zero);
+        if (parts[4]  == null) rightArm(zero, 0);
+        if (parts[16] == null) leftArm(zero, 0);
+        if (parts[28] == null) rightLeg(zero);
+        if (parts[30] == null) leftLeg(zero);
     }
 
     /**
@@ -187,7 +194,7 @@ public class SkinRender extends RenderTool {
         /* Base layer */
         var tx = right ? 0 : 4;
         var ty = right ? 4 : 12;
-        parts[29 + i] = Cube.from(from, to)
+        parts[28 + i] = Cube.from(from, to)
             .pivot(right ? 2 : 6, 0, 2)
             .rotation(rotation)
             .texture(Face.UP,    skin, 0, tx + 1, ty + 0, tx + 2, ty + 1)
@@ -200,7 +207,7 @@ public class SkinRender extends RenderTool {
 
         /* Second layer */
         ty = right ? 8 : 12;
-        parts[30 + i] = Cube.from(from.add(FROM_OFFSET), to.add(TO_OFFSET))
+        parts[29 + i] = Cube.from(from.add(FROM_OFFSET), to.add(TO_OFFSET))
             .pivot(right ? 2 : 6, 0, 2)
             .rotation(rotation)
             .texture(Face.UP,    skin, 0, 1, ty + 0, 2, ty + 1)
@@ -352,7 +359,7 @@ public class SkinRender extends RenderTool {
         var aRad = angle * (Math.PI / 180.0);
         b = Math.cos(aRad) * (4 + 2*OFFSET);
         a = Math.tan(aRad) * b;
-        parts[u + i + 8] = new Trapezoid(
+        parts[u + i + 6] = new Trapezoid(
             new Vec(4, height, b).add(sizeOffset), // size
             position,
             new Vec(partAngle, 0, 0).add(root.rotation()),
