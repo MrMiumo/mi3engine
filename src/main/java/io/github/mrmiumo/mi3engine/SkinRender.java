@@ -66,10 +66,7 @@ public class SkinRender extends RenderTool {
             throw new IllegalArgumentException("The skin must be a regular file");
         }
 
-        this.skin = Texture.from(
-            skin.getFileName().toString(),
-            ImageIO.read(Files.newInputStream(skin))
-        );
+        this.skin = Texture.from(skin);
         this.marks = getSkinMarks(this.skin);
         body();
     }

@@ -43,8 +43,7 @@ engine.camera()
     .setZoom(0.32);
 
 /* Step 3. Load your textures */
-BufferedImage img = ImageIO.read(Files.newInputStream("myTexture.png"));
-Texture texture = Texture.from(img);
+Texture texture = Texture.from(Path.of("myTexture.png"));
 
 /* Step 4. Create the cubes */
 Cube.from(new Vec(16, 0, 16), new Vec(32, 8,  32))

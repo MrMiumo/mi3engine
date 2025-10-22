@@ -5,7 +5,12 @@ import static io.github.mrmiumo.mi3engine.RenderUtils.clamp;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Random;
+
+import javax.imageio.ImageIO;
 
 /**
  * Image or portion of an image used to be paint over model faces.
@@ -29,15 +34,29 @@ public record Texture(
     private static int nextColorSet = 0;
 
     /**
-     * Creates a new texture from the given image. The uv box uses the
-     * full image and no rotation is applied.
-     * @param name the name of this texture (for debug only)
-     * @param img the image to use as texture
+     * Creates a new texture from the given image file. The uv box uses
+     * the full image and no rotation is applied. The texture name is
+     * automatically taken from the image file name.<p>
+     * This function is the only one that supports loading animated
+     * textures (to avoid weird texture rendering).
+     * @param path the image to load as texture
      * @return the corresponding texture
+     * @throws IOException in case of error while reading the file
      */
-    public static Texture from(String name, BufferedImage img) {
+    public static Texture from(Path path) throws IOException {
+        var name = path.getFileName().toString();
+        var img = ImageIO.read(Files.newInputStream(path));
         var w = img.getWidth();
         var h = img.getHeight();
+        if (Files.exists(Path.of(path.toString() + ".mcmeta"))) {
+            /* Animated texture */
+            h = w;
+            var crop = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+            var g = crop.getGraphics();
+            g.drawImage(img, 0, 0, null);
+            g.dispose();
+            img = crop;
+        }
         var pixels = getPixels(img);
         if (isEmpty(pixels, w, 0, 0, w, h)) {
             return null;
