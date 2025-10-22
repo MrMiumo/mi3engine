@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.function.Function;
 
-import javax.imageio.ImageIO;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.awt.image.BufferedImage;
@@ -288,19 +286,20 @@ public class ModelParser extends RenderTool {
         var depth = height / 16;
 
         var covered = new boolean[height * width];
-        var solid = new boolean[width * height];
+        var solid = new int[width * height];
         for (var i = 0 ; i < solid.length ; i++) {
-            solid[i] = (pixels[i] >>> 24) >= 254;
+            solid[i] = (pixels[i] >>> 24) / 5;
         }
 
         for (var y = 0 ; y < height ; y++) {
             for (var x = 0 ; x < width ; x++) {
                 int offset = y * width + x;
-                if (!solid[offset] || covered[offset]) continue;
+                var alpha = solid[offset];
+                if (alpha == 0 || covered[offset]) continue;
 
                 /* Find the widest possible rectangle */
                 var recW = 0;
-                while (x + recW < width && !covered[offset + recW] && solid[offset + recW]) {
+                while (x + recW < width && !covered[offset + recW] && solid[offset + recW] == alpha) {
                     recW++;
                 }
 
@@ -309,12 +308,11 @@ public class ModelParser extends RenderTool {
                 int minW = recW;
                 while (y + recH < height) {
                     int rowStart = (y + recH) * width + x;
-                    int w = 0;
-                    while (w < minW && !covered[rowStart + w] && solid[rowStart + w]) {
-                        w++;
+                    var lineOk = true;
+                    for (var i = 0 ; i < minW && lineOk ; i++) {
+                        if (covered[rowStart + i] || solid[rowStart + i] != alpha) lineOk = false;
                     }
-                    if (w == 0) break;
-                    minW = w;
+                    if (!lineOk) break;
                     recH++;
                 }
 

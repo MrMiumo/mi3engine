@@ -81,6 +81,8 @@ public final class RenderUtils {
         if (r > 255) r = 255; else if (r < 0) r = 0;
         if (g > 255) g = 255; else if (g < 0) g = 0;
         if (b > 255) b = 255; else if (b < 0) b = 0;
+        var aColor = (color >>> 24) & 0xFF;
+        if (aColor < 254 && aColor == a) color = 0;
 
         /* Blend with other color */
         if (a < 255) {
