@@ -119,9 +119,9 @@ engine.camera()
     .setRotation(5, 25, 0)
     .setTranslation(0, 0)
     .setZoom(0.4)
-    .setAmbientLight(0.05f)
+    .setAmbientLight(0.25f)
     .setSpotLight(7)
-    .setSpotDirection(new Vec(-1, 1, -.15));
+    .setSpotDirection(new Vec(1, 1, .15));
 
 /* Step 3. Use the tool to create a pose */
 engine.head(new Vec(-5, -8, 3))

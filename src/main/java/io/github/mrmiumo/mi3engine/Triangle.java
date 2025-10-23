@@ -20,19 +20,23 @@ public record Triangle(TriVertex a, TriVertex b, TriVertex c, Texture texture, d
      * Creates a new triangle from the given screen vertices, z depths,
      * triangle points and the texture.
      * @param cam the camera configuration needed to compute light
-     * @param screenVerts the list of vertices of the original rectangle
+     * @param screenVerts the list of screen-space vertices of the original rectangle
+     * @param worldVerts the list of world-space vertices of the original rectangle
      * @param depths the list of depths
      * @param points the points of the triangle to use
      * @param texture the texture to apply
      * @return the triangle
      */
-    public static Triangle from(Camera cam, Vec2[] screenVerts, double[] depths, int[] points, Texture texture) {
+    public static Triangle from(Camera cam, Vec2[] screenVerts, Vec[] worldVerts, double[] depths, int[] points, Texture texture) {
         var a = TriVertex.from(screenVerts, depths, points[0]);
         var b = TriVertex.from(screenVerts, depths, points[1]);
         var c = TriVertex.from(screenVerts, depths, points[2]);
 
-        var normal = getNormal(a, b, c);
-        if (normal.z() > 0) return null;
+        Vec worldA = worldVerts[points[0]];
+        Vec worldB = worldVerts[points[1]];
+        Vec worldC = worldVerts[points[2]];
+        var normal = getNormal(worldA, worldB, worldC).rotate(cam.rotation());
+        if (normal.z() < 0) return null;
 
         return new Triangle(
             a, b, c,
@@ -52,7 +56,8 @@ public record Triangle(TriVertex a, TriVertex b, TriVertex c, Texture texture, d
      */
     private static double computeIntensity(Camera cam, Vec normal) {
         /* Computes the light from the normal */
-        double diffuseFactor = normal.dot(cam.spotDirection());
+        var spot = cam.spotDirection();
+        double diffuseFactor = normal.dot(new Vec(-spot.x(), -spot.y(), spot.z()));
         double clampedDiffuseFactor = Math.max(0, diffuseFactor);
         double finalIntensity = cam.ambientLight() + cam.spotLight() * clampedDiffuseFactor;
         if (normal.y() < 0) finalIntensity /= 1 -normal.y();
@@ -68,9 +73,9 @@ public record Triangle(TriVertex a, TriVertex b, TriVertex c, Texture texture, d
      * @param c the vertex of the third corner
      * @return the normal vector
      */
-    private static Vec getNormal(TriVertex a, TriVertex b, TriVertex c) {
-        Vec ab = b.vec().sub(a.vec());
-        Vec ac = c.vec().sub(a.vec());
+    private static Vec getNormal(Vec a, Vec b, Vec c) {
+        Vec ab = b.sub(a);
+        Vec ac = c.sub(a);
         return ab.cross(ac).normalize();
     }
 }

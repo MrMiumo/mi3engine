@@ -6,13 +6,13 @@ package io.github.mrmiumo.mi3engine;
 public class Camera {
 
     /** The intensity of the ambient light */
-    private float ambient = 0.6f;
+    private float ambient = 0.5f;
 
     /** The intensity of the spot light (diffuse) */
-    private float spot = 9f;
+    private float spot = 2f;
 
     /** The position of the light source */
-    private Vec spotDirection = new Vec(0, 1, 0).normalize();
+    private Vec spotDirection = new Vec(0, 1, .6).normalize();
 
     /** The zoom level of the camera (scale factor) */
     private double zoom = 1.0;

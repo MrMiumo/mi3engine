@@ -126,6 +126,7 @@ class RenderCore implements RenderEngine {
                 if (tex == null) continue;
                 int[] idxs = FACES[face.ordinal()];
 
+                Vec[] worldVerts = new Vec[4];
                 Vec2[] screenVerts = new Vec2[4];
                 double[] depthVals = new double[4];
                 for (int k = 0 ; k < 4 ; k++) {
@@ -134,11 +135,12 @@ class RenderCore implements RenderEngine {
                     double sxPix = center.x() + (view.x() * zoom);
                     double syPix = center.y() - (view.y() * zoom);
                     screenVerts[k] = new Vec2(sxPix, syPix);
+                    worldVerts[k] = world;
                     depthVals[k] = -view.z();
                 }
                 
                 for (int[] points : TRIANGLES) {
-                    var triangle = Triangle.from(config, screenVerts, depthVals, points, tex);
+                    var triangle = Triangle.from(config, screenVerts, worldVerts, depthVals, points, tex);
                     if (triangle == null) continue;
                     if (triangle.opaque()) trianglesOpaque.add(triangle);
                     else trianglesTransparent.add(triangle);
