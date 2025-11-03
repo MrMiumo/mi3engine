@@ -77,7 +77,7 @@ public interface RenderEngine {
      * @param cubes the cubes to add
      * @return this engine
      */
-    public RenderEngine addElements(Collection<Element> cubes);
+    public RenderEngine addElements(Collection<? extends Element> cubes);
 
     /**
      * Reset the scene by removing all the cubes

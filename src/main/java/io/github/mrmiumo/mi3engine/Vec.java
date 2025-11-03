@@ -39,7 +39,25 @@ public record Vec(double x, double y, double z) {
     public Vec sub(Vec other) {
         return new Vec(x - other.x, y - other.y, z - other.z);
     }
-    
+
+    /** 
+     * Multiply this vector by the given one
+     * @param other the other vector to multiply to this one
+     * @return the new vector resulting of the multiplication
+     */
+    public Vec mul(Vec other) {
+        return new Vec(x * other.x, y * other.y, z * other.z);
+    }
+
+    /** 
+     * Divide this vector by the given value
+     * @param divisor the value to divide to this one
+     * @return the new vector resulting of the division
+     */
+    public Vec div(double divisor) {
+        return new Vec(x / divisor, y / divisor, z / divisor);
+    }
+
     /**
      * Calculates the cross vector between this ont and the given one.
      * @param other the vector to cross with

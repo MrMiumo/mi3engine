@@ -41,7 +41,7 @@ class RenderTool implements RenderEngine {
     }
 
     @Override
-    public RenderEngine addElements(Collection<Element> cubes) {
+    public RenderEngine addElements(Collection<? extends Element> cubes) {
         return engine.addElements(cubes);
     }
 

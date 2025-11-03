@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.EnumMap;
 import java.util.function.Function;
 
 import io.github.mrmiumo.mi3engine.Element.Face;
@@ -32,6 +33,9 @@ public class SkinRender extends RenderTool {
 
     /** The arm UV to handle regular and skim skins */
     private final float[] marks;
+
+    /** The arm UV to handle regular and skim skins */
+    private final EnumMap<Slot, Group> equipments = new EnumMap<>(Slot.class);
 
     /**
      * Array containing all skin elements (mutable) that enable to
@@ -77,6 +81,11 @@ public class SkinRender extends RenderTool {
         for (var part : parts) {
             if (part == null) continue;
             engine.addElement(part);
+        }
+        for (var equipment : equipments.entrySet()) {
+            if (equipment.getValue() == null) continue;
+            // TODO take slot into account adjust element position
+            engine.addElements(equipment.getValue().getElements());
         }
         return engine.render();
     }
@@ -241,6 +250,20 @@ public class SkinRender extends RenderTool {
      */
     public SkinRender leftArm(Vec rotation, double bending) {
         return createArm(new Vec(8, 8, 0), rotation, bending);
+    }
+
+    /**
+     * Sets the given model to the skin slot. This will equip a custom
+     * 3D model in the hand or armor slot.<p>
+     * To un-equip, simply set the slot but keep the model to null
+     * @param slot the slot to put the model on
+     * @param model the model to set.
+     * @return this skin engine
+     */
+    public SkinRender equip(Slot slot, Group model) {
+        if (model == null) equipments.remove(slot);
+        else equipments.put(slot, model);
+        return this;
     }
 
     private SkinRender createArm(Vec pos, Vec rot, double angle) {
@@ -455,5 +478,13 @@ public class SkinRender extends RenderTool {
                 3, 1  // back
             };
         }
+    }
+
+    /**
+     * Represent all possible armor/items slots to add to the skin
+     * render.
+     */
+    public enum Slot {
+        HEAD, LEFT_ARM, RIGHT_ARM, CHESTPLATE, LEGS, FOOTS;
     }
 }

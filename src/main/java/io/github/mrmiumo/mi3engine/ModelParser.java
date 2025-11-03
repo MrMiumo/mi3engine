@@ -114,6 +114,7 @@ public class ModelParser extends RenderTool {
      * @param json the "textures" json node from the model file
      */
     private void parseTextures(JsonNode json) {
+        if (json == null) return;
         json.properties().stream()
             .forEach(p -> {
                 var value = p.getValue().asText();

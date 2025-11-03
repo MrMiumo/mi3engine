@@ -82,7 +82,7 @@ class RenderCore implements RenderEngine {
     }
 
     @Override
-    public RenderEngine addElements(Collection<Element> cubes) {
+    public RenderEngine addElements(Collection<? extends Element> cubes) {
         this.elements.addAll(cubes);
         return this;
     }
