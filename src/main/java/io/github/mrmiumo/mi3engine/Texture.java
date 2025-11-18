@@ -76,6 +76,14 @@ public record Texture(
      * @return the new texture with the given UV box and rotation
      */
     public Texture uv(float x, float y, float w, float h, int rotate) {
+        if (w < 0) {
+            w = -w;
+            x -= w;
+        }
+        if (h < 0) {
+            h = -h;
+            y -= h;
+        }
         /* Adapt uv from 16x16 to the real size */
         if (source.getWidth() != 16 || source.getHeight() != 16) {
             x = x * source.getWidth() / 16f;
