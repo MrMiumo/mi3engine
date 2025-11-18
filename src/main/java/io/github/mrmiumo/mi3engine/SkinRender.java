@@ -89,6 +89,7 @@ public class SkinRender extends RenderTool {
      * Clear the scene and generate all cubes.
      * This is usually done lazily but it can need to be done manually
      * some time to be used with AutoFramer for example.
+     * @return this skinRender
      */
     protected SkinRender build() {
         engine.clear();
@@ -529,6 +530,9 @@ public class SkinRender extends RenderTool {
      * render.
      */
     public enum Slot {
-        HEAD/*, LEFT_ARM, RIGHT_ARM, CHESTPLATE, LEGS, FOOTS */;
+        /** The player head slot (amor head) */
+        HEAD
+        
+        /*, LEFT_ARM, RIGHT_ARM, CHESTPLATE, LEGS, FOOTS */;
     }
 }

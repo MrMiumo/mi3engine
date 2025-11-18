@@ -60,7 +60,7 @@ public record Vec(double x, double y, double z) {
 
     /** 
      * Multiply this vector by the given value
-     * @param other the value to multiply to this one
+     * @param factor the value to multiply to this one
      * @return the new vector resulting of the multiplication
      */
     public Vec mul(double factor) {

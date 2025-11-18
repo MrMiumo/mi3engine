@@ -6,6 +6,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
+/**
+ * Class enabling to group multiple elements together and manipulate
+ * them at once: position, rotation and scale.
+ */
 public class Group implements Element {
 
     private ArrayList<Cube> elements = new ArrayList<>();
@@ -14,6 +18,9 @@ public class Group implements Element {
     private Vec pivot = Vec.ZERO;
     private Vec position = Vec.ZERO;
 
+    /**
+     * Default constructor
+     */
     public Group() {}
 
     /**
@@ -29,8 +36,8 @@ public class Group implements Element {
     /**
      * Adds all the cube contained in the given list. Any element that
      * is not {@link Cube} will be ignored.
-     * @param elements
-     * @return
+     * @param elements the elements to add to the group
+     * @return this group
      */
     public Group add(Collection<? extends Element> elements) {
         for (var element : elements) {
@@ -51,11 +58,21 @@ public class Group implements Element {
         return new DummyEngine();
     }
 
+    /**
+     * Sets the size of the group
+     * @param scale the size factor to change the group size
+     * @return this group
+     */
     public Group scale(Vec scale) {
         this.scale = scale;
         return this;
     }
 
+    /**
+     * Sets the angle of the group (global Euler angle)
+     * @param rotation the angle of the group
+     * @return this group
+     */
     public Group rotate(Vec rotation) {
         this.rotate = rotation;
         return this;
@@ -64,6 +81,11 @@ public class Group implements Element {
     @Override
     public Vec rotation() { return rotate; }
 
+    /**
+     * Sets the group pivot point location (absolute)
+     * @param pivot the position of the pivot point
+     * @return this group
+     */
     public Group pivot(Vec pivot) {
         this.pivot = pivot;
         return this;
@@ -72,6 +94,11 @@ public class Group implements Element {
     @Override
     public Vec pivot() {  return pivot; }
 
+    /**
+     * Sets the group position
+     * @param position the position of the group
+     * @return this group
+     */
     public Group position(Vec position) {
         this.position = position;
         return this;
@@ -93,6 +120,10 @@ public class Group implements Element {
     @Override
     public Vec[] localVertices() { return new Vec[]{}; }
 
+    /**
+     * Retrieves all elements saved in this group
+     * @return the elements contained in this group
+     */
     public Collection<Cube> getElements() {
         var convert = RenderEngine.modelToWorld(this);
         return elements.stream()

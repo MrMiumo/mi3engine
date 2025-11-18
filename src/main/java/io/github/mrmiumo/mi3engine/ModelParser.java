@@ -481,16 +481,39 @@ public class ModelParser extends RenderTool {
 
     /**
      * Stores the displays information of a minecraft model.
+     * @param rotation the rotation value (local Euler angle)
+     * @param pivot the position of the pivot point (unused in standard display)
+     * @param translation the position offset
+     * @param scale the size multiplier
      */
     public record Display(Vec rotation, Vec pivot, Vec translation, Vec scale) {
         public static final Display NULL = new Display(Vec.ZERO, Vec.ZERO, new Vec(1, 1, 1));
         
+        /**
+         * Creates a new display object. This constructor allows each
+         * param to be set to null. If used, the default value will be
+         * injected. This constructor is intended to be used internally.
+         * To create a new Display object, prefer {@link #Display(Vec, Vec, Vec)}.
+         * @param rotation the rotation value (local Euler angle)
+         * @param pivot the position of the pivot point (unused in standard display)
+         * @param translation the position offset
+         * @param scale the size multiplier
+         * @see #Display(Vec, Vec, Vec)
+         */
         public Display {
             if (rotation == null) rotation = Vec.ZERO;
             if (translation == null) translation = Vec.ZERO;
             if (scale == null) scale = new Vec(1, 1, 1);
         }
         
+        /**
+         * Creates a new display object. This constructor allows each
+         * param to be set to null. If used, the default value will be
+         * injected.
+         * @param rotation the rotation value (local Euler angle)
+         * @param translation the position offset
+         * @param scale the size multiplier
+         */
         public Display(Vec rotation, Vec translation, Vec scale) {
             this(rotation, translation, translation, scale);
         }
@@ -520,15 +543,37 @@ public class ModelParser extends RenderTool {
             ;
         }
 
+        /**
+         * List of the official Minecraft types of Display. Each type
+         * corresponds to a different situation (slot/container).
+         */
         public enum Type {
+
+            /** Model display when held in right hand and seen by another player */
             THIRD_PERSON_RIGHT("thirdperson_righthand"),
+            
+            /** Model display when held in left hand and seen by another player */
             THIRD_PERSON_LEFT("thirdperson_lefthand"),
+            
+            /** Model display when held in right hand and seen as the first person */
             FIRST_PERSON_RIGHT("firstperson_righthand"),
+            
+            /** Model display when held in left hand and seen as the first person */
             FIRST_PERSON_LEFT("firstperson_lefthand"),
+            
+            /** Model display when placed in the armor head slot */
             HEAD("head"),
+
+            /** Model display when dropped to the ground (hovering) */
             GROUND("ground"),
+
+            /** Model display when placed inside an item frame */
             FRAME("fixed"),
+
+            /** Model display when places in a book shelf */
             SHELF("on_shelf"),
+
+            /** Model display inside the player inventory/items container */
             GUI("gui");
 
             private final String key;
