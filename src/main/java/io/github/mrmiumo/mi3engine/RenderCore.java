@@ -20,6 +20,9 @@ import io.github.mrmiumo.mi3engine.Element.Face;
  */
 class RenderCore implements RenderEngine {
 
+    /** Minecraft scene offset */
+    static final Vec OFFSET = new Vec(-8, -8, -8);
+
     /** Correspondence table between triangle vertices and original rectangle */
     static final int[][] TRIANGLES = {{0, 1, 2}, {0, 2, 3}};
 
@@ -117,6 +120,7 @@ class RenderCore implements RenderEngine {
 
         /* Create triangles from boxes */
         for (var element : elements) {
+            element = element.move(OFFSET);
             final Vec[] localVerts = element.localVertices();
             final var modelPoint = RenderEngine.modelToWorld(element);
 

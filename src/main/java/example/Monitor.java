@@ -9,20 +9,25 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
+import io.github.mrmiumo.mi3engine.AutoFramer;
+import io.github.mrmiumo.mi3engine.Group;
 import io.github.mrmiumo.mi3engine.ModelParser;
 import io.github.mrmiumo.mi3engine.RenderEngine;
 import io.github.mrmiumo.mi3engine.SkinRender;
 import io.github.mrmiumo.mi3engine.Vec;
+import io.github.mrmiumo.mi3engine.SkinRender.Slot;
 
 /**
  * Very basic monitor to visualize engine output in real time and
@@ -56,17 +61,16 @@ public class Monitor extends JFrame {
 
     /**
      * Creates and opens a window to display the engine output.
-     * @param width the width of the image to generate
-     * @param height the height of the image to generate
      * @param engine the engine to use for rendering
      * @throws IOException in case of error while parsing the file
      */
-    public Monitor(int width, int height, RenderEngine engine) throws IOException {
+    public Monitor(RenderEngine engine) throws IOException {
+        var width =  (int)engine.size().x();
+        var height = (int)engine.size().y();
         engineHQ = engine;
         engineFast = RenderEngine.from(width / 2, height / 2).addElements(engineHQ.getElements());
         engineFast.setCamera(engineHQ.camera());
         engineHQ.camera()
-            .setRotation(25, 35, 0)
             .setZoom(0.32);
 
         /* Setup the window */
@@ -188,22 +192,23 @@ public class Monitor extends JFrame {
      * @throws InterruptedException in case of error while sleeping
      */
     public static void main(String[] args) throws IOException, InterruptedException {
-        /* Engine to display a model */
-        // var pack = Path.of("C:/Path/to/the/resource-pack");
-        // var model = pack.resolve("assets/minecraft/models/item/myModel.json");
-        // var modelEngine = new ModelParser(RenderEngine.from(1287, 1287)).parse(model);
+        var pack = Path.of("src/test/resources/assets/minecraft");
         
-        /* Engine to display a skin */
-        var path = Path.of("MySkin.png");
-        var skinEngine = new SkinRender(RenderEngine.from(1287, 1287), path);
-        skinEngine.camera()
-            .setAmbientLight(0.05f)
-            .setSpotLight(7)
-            .setSpotDirection(new Vec(-1, 1, -.15));
-        skinEngine.render();
+        /* Choose the engine */
+        // var engine = testModel(pack);
+        var engine = testSkin(pack);
+        
+        var save = true;
+        save = false;
+        if (save) {
+            BufferedImage out = new AutoFramer(engine).render();
+            ImageIO.write(out, "PNG", new File("out_transparency.png"));
+            System.out.println("Rendered out_transparency.png");
+            return;
+        }
 
         /* Monitor launching */
-        var window = new Monitor(1287, 1287, skinEngine);
+        var window = new Monitor(engine);
         var i = 0;
         var start = System.currentTimeMillis();
         while (true) {
@@ -220,5 +225,36 @@ public class Monitor extends JFrame {
                 i = 0;
             }
         }
+    }
+
+    public static ModelParser testModel(Path pack) throws IOException {
+        var engine = new ModelParser(RenderEngine.from(1287, 1287));
+        engine.parse(pack.resolve("assets/minecraft/models/item/myModel.json"));
+        engine.camera()
+            .setRotation(25, 35, 0)
+            .setTranslation(0, 0)
+            .setZoom(0.4);
+        return engine;
+    }
+
+    public static SkinRender testSkin(Path pack) throws IOException {
+        var path = pack.resolve("textures/debugSkin.png");
+        var skinEngine = new SkinRender(RenderEngine.from(1287, 1287), path);
+        skinEngine.camera()
+            .setAmbientLight(0.35f)
+            .setSpotLight(7)
+            .setSpotDirection(new Vec(-1, 1, -.15))
+            .setRotation(5, 95, 0);
+        skinEngine.head(new Vec(-5, -8, 3))
+            .rightArm(new Vec(-70, 75, 30), 75)
+            .leftArm(new Vec(0, 25, 10), 35)
+            .rightLeg(new Vec(5, -20, -5))
+            .leftLeg(new Vec(25, -10, 15));
+
+        var hat = new ModelParser(new Group().asEngine())
+            .parse(pack.resolve("models/hatDemo1.json"));
+        skinEngine.equip(Slot.HEAD, hat);
+        skinEngine.render();
+        return skinEngine;
     }
 }

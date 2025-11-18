@@ -104,7 +104,8 @@ This tools enables to create skin render with custom poses. This module is not p
 | Second layer    | Upper skin layer is rendered          | `v1.1.0`          |
 | 3D Second layer | Improved second layer with true depth | :x:               |
 | Slim skin       | 'Alex' skin with 3px large arms       | `v1.1.1`          |
-| Item holding    | Enable to add items in hands          | *Not planned yet* |
+| Hat             | Enable to add model on head           | `v1.1.1`          |
+| Item holding    | Enable to add model in hands          | :x:               |
 | Armor           | Equip armor pieces on the player      | *Not planned yet* |
 
 Here is an example of usage:
@@ -136,6 +137,14 @@ BufferedImage output = engine.render();
 
 /* Step 5. Save the image */
 ImageIO.write(output, "PNG", Files.newOutputStream("MyImage.png"));
+```
+
+To equip models on the skin, use the `equip` function as bellow:
+```java
+// We use a small trick to avoid creating a real engine here!
+var hat = new ModelParser(new Group().asEngine())
+    .parse(pack.resolve("models/hatDemo1.json"));
+engine.equip(Slot.HEAD, hat);
 ```
 
 ### AutoFramer Tool

@@ -8,6 +8,8 @@ import java.util.EnumMap;
 import java.util.function.Function;
 
 import io.github.mrmiumo.mi3engine.Element.Face;
+import io.github.mrmiumo.mi3engine.ModelParser.Display;
+import io.github.mrmiumo.mi3engine.ModelParser.Display.Type;
 
 /**
  * Orthographic headless renderer for textures cubes. Each cube can
@@ -34,8 +36,11 @@ public class SkinRender extends RenderTool {
     /** The arm UV to handle regular and skim skins */
     private final float[] marks;
 
-    /** The arm UV to handle regular and skim skins */
-    private final EnumMap<Slot, Group> equipments = new EnumMap<>(Slot.class);
+    /** List of items to put in the player slots with their positions */
+    private final EnumMap<Slot, ModelParser> equipments = new EnumMap<>(Slot.class);
+
+    /** The position and rotation of each slot */
+    private final EnumMap<Slot, Display> slotsDisplay = new EnumMap<>(Slot.class);
 
     /**
      * Array containing all skin elements (mutable) that enable to
@@ -76,6 +81,16 @@ public class SkinRender extends RenderTool {
     
     @Override
     public BufferedImage render() {
+        build();
+        return engine.render();
+    }
+
+    /**
+     * Clear the scene and generate all cubes.
+     * This is usually done lazily but it can need to be done manually
+     * some time to be used with AutoFramer for example.
+     */
+    protected SkinRender build() {
         engine.clear();
         lazyInit();
         for (var part : parts) {
@@ -83,11 +98,38 @@ public class SkinRender extends RenderTool {
             engine.addElement(part);
         }
         for (var equipment : equipments.entrySet()) {
-            if (equipment.getValue() == null) continue;
-            // TODO take slot into account adjust element position
-            engine.addElements(equipment.getValue().getElements());
+            var slotDisplay = slotsDisplay.get(equipment.getKey());
+            if (slotDisplay == null) continue;
+            var engine = equipment.getValue();
+            if (engine == null) continue;
+            addEquipment(equipment.getKey(), slotDisplay, engine);
         }
-        return engine.render();
+        return this;
+    }
+
+    private void addEquipment(Slot slot, Display slotDisplay, ModelParser engine) {
+        Group dGroup;
+        if (engine.engine instanceof Group.DummyEngine dummy) {
+            dGroup = dummy.group();
+        } else {
+            dGroup = new Group().add(engine.getElements());
+        }
+        
+        /* Display group */
+        var d = engine.getDisplay(Type.HEAD);
+        dGroup.position(new Vec(-8, -8, -8));
+        dGroup.pivot(Vec.ZERO);
+        dGroup.rotate(new Vec(d.rotation().x(), -d.rotation().y(), d.rotation().z()));
+
+        /* Slot group */
+        var scaleFactor = 0.625;
+        var sGroup = new Group().add(dGroup.getElements());
+        sGroup.position(d.translation().mul(scaleFactor).add(slotDisplay.translation()));
+        sGroup.pivot(slotDisplay.pivot());
+        sGroup.rotate(new Vec(-slotDisplay.rotation().x(), 180 - slotDisplay.rotation().y(), slotDisplay.rotation().z()));
+        sGroup.scale(d.scale().mul(scaleFactor).mul(slotDisplay.scale()));
+
+        this.engine.addElements(sGroup.getElements());
     }
 
     /**
@@ -108,12 +150,13 @@ public class SkinRender extends RenderTool {
      * @return this skin engine
      */
     public SkinRender head(Vec rotation) {
+        var pivot = new Vec(4, 12, 2);
         var from = new Vec(0, 12, -2);
         var to = new Vec(8, 20, 6);
 
         /* Base layer */
         parts[0] = Cube.from(from, to)
-            .pivot(4, 12, 2)
+            .pivot(pivot)
             .rotation(rotation)
             .texture(Face.UP,    skin, 0, 2, 0, 4, 2)
             .texture(Face.DOWN,  skin, 2, 6, 0, 4, 2)
@@ -125,7 +168,7 @@ public class SkinRender extends RenderTool {
 
         /* Second layer */
         parts[1] = Cube.from(from.add(FROM_OFFSET), to.add(TO_OFFSET))
-            .pivot(4, 12, 2)
+            .pivot(pivot)
             .rotation(rotation)
             .texture(Face.UP,    skin, 0, 10, 0, 12, 2)
             .texture(Face.DOWN,  skin, 2, 14, 0, 12, 2)
@@ -135,6 +178,7 @@ public class SkinRender extends RenderTool {
             .texture(Face.NORTH, skin, 0, 14, 2, 16, 4)
             .build();
 
+        slotsDisplay.put(Slot.HEAD, new Display(rotation, pivot, pivot.add(0, 4, 0), null));
         return this;
     }
 
@@ -260,7 +304,7 @@ public class SkinRender extends RenderTool {
      * @param model the model to set.
      * @return this skin engine
      */
-    public SkinRender equip(Slot slot, Group model) {
+    public SkinRender equip(Slot slot, ModelParser model) {
         if (model == null) equipments.remove(slot);
         else equipments.put(slot, model);
         return this;
@@ -485,6 +529,6 @@ public class SkinRender extends RenderTool {
      * render.
      */
     public enum Slot {
-        HEAD, LEFT_ARM, RIGHT_ARM, CHESTPLATE, LEGS, FOOTS;
+        HEAD/*, LEFT_ARM, RIGHT_ARM, CHESTPLATE, LEGS, FOOTS */;
     }
 }

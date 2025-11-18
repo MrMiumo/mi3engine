@@ -390,6 +390,21 @@ public class ModelParser extends RenderTool {
         return display.getOrDefault(type, Display.NULL);
     }
 
+    /**
+     * Sets a custom display for the given slot
+     * @param type the type of display to configure (slot)
+     * @param value the display settings
+     * @return this parser
+     */
+    public ModelParser setDisplay(Display.Type type, Display value) {
+        if (type == null) return this;
+        if (display == null) {
+            display.remove(type);
+        } else {
+            display.put(type, value);
+        }
+        return this;
+    }
 
 
 
@@ -472,7 +487,6 @@ public class ModelParser extends RenderTool {
         
         public Display {
             if (rotation == null) rotation = Vec.ZERO;
-            else rotation = rotation.localToGlobal();
             if (translation == null) translation = Vec.ZERO;
             if (scale == null) scale = new Vec(1, 1, 1);
         }
@@ -487,8 +501,10 @@ public class ModelParser extends RenderTool {
          * @return the display
          */
         public static Display from(JsonNode json) {
+            var rotation = vecFrom(json.get("rotation"));
+            if (rotation != null) rotation = rotation.localToGlobal();
             return new Display(
-                vecFrom(json.get("rotation")),
+                rotation,
                 vecFrom(json.get("translation")),
                 vecFrom(json.get("scale"))
             );

@@ -73,6 +73,7 @@ class TestsUtils {
      */
     public static void generateReferenceFramed(RenderEngine engine) throws IOException {
         generateReference(new AutoFramer(engine));
+        throw new AssertionError("Image got generated. This method should not be called to check if the render is successful!!");
     }
 
     /**

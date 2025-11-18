@@ -37,6 +37,14 @@ public interface Element {
     public Vec[] localVertices();
 
     /**
+     * Moves this elements by the specified offset. This updates the
+     * position and pivot.
+     * @param offset the amount of distance to move to
+     * @return the moved element
+     */
+    Element move(Vec offset);
+
+    /**
      * Names of the cube faces
      */
     public static enum Face {

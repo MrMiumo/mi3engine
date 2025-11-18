@@ -80,6 +80,11 @@ public record Cube(Vec size, Vec position, Vec rotation, Vec pivot, EnumMap<Face
         return v;
     }
 
+    @Override
+    public Element move(Vec offset) {
+        return new Cube(size, position.add(offset), rotation, pivot.add(offset), textures);
+    }
+
     /**
      * Cube builder that enable to create new cubes easily.
      */

@@ -52,7 +52,7 @@ public class Group implements Element {
     }
 
     public Group scale(Vec scale) {
-        this.scale = scale; // TODO may need .div(1.6)
+        this.scale = scale;
         return this;
     }
 
@@ -79,6 +79,13 @@ public class Group implements Element {
 
     @Override
     public Vec position() { return position; }
+    
+    @Override
+    public Element move(Vec offset) {
+        position = position.add(offset);
+        pivot = pivot.add(offset);
+        return this;
+    }
 
     @Override
     public Texture getTexture(Face face) { return null;  }
@@ -190,7 +197,7 @@ public class Group implements Element {
 
         @Override
         public Vec2 size() {
-            return new Vec2();
+            return new Vec2(0, 0);
         }
 
         @Override

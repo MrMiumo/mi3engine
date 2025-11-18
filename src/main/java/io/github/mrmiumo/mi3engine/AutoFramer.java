@@ -46,6 +46,7 @@ public class AutoFramer extends RenderTool {
 
     @Override
     public BufferedImage render() {
+        if (super.engine instanceof SkinRender skin) skin.build();
         var bkpZoom = engine.camera().getZoom();
         var bkpRot = engine.camera().getRotation();
         var bkpPan = engine.camera().getTranslation();
@@ -83,13 +84,14 @@ public class AutoFramer extends RenderTool {
         final var cam = camera();
 
         /* Create triangles from boxes */
-        for (var cube : engine.getElements()) {
-            final Vec[] localVerts = cube.localVertices();
-            final var modelPoint = RenderEngine.modelToWorld(cube);
+        for (var element : engine.getElements()) {
+            element = element.move(RenderCore.OFFSET);
+            final Vec[] localVerts = element.localVertices();
+            final var modelPoint = RenderEngine.modelToWorld(element);
 
             /* Generates triangles for each face */
             for (var face : Face.values()) {
-                if (cube.getTexture(face) == null) continue;
+                if (element.getTexture(face) == null) continue;
                 int[] idxs = FACES[face.ordinal()];
 
                 Vec2[] position = new Vec2[4];

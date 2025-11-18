@@ -37,4 +37,9 @@ public record Trapezoid(Vec size, Vec position, Vec rotation, Vec pivot, Vec tap
 
         return v;
     }
+
+    @Override
+    public Element move(Vec offset) {
+        return new Trapezoid(size, position.add(offset), rotation, pivot.add(offset), taper, textures);
+    }
 }
