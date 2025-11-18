@@ -123,29 +123,33 @@ public interface RenderEngine {
         final double rx = Math.toRadians(cube.rotation().x());
         final double ry = Math.toRadians(cube.rotation().y());
         final double rz = Math.toRadians(cube.rotation().z());
-        final double crx = Math.cos(rx), srx = Math.sin(rx);
-        final double cry = Math.cos(ry), sry = Math.sin(ry);
-        final double crz = Math.cos(rz), srz = Math.sin(rz);
+        final double cosX = Math.cos(rx), sinX = Math.sin(rx);
+        final double cosY = Math.cos(ry), sinY = Math.sin(ry);
+        final double cosZ = Math.cos(rz), sinZ = Math.sin(rz);
 
-        return (Vec p) -> {
-            double x = p.x() - cube.pivot().x();
-            double y = p.y() - cube.pivot().y();
-            double z = p.z() - cube.pivot().z();
-            // Rx
+        return (Vec pos) -> {
+            double x = pos.x() + cube.position().x() - cube.pivot().x();
+            double y = pos.y() + cube.position().y() - cube.pivot().y();
+            double z = pos.z() + cube.position().z() - cube.pivot().z();
+
+            // Rotate around X axis
             double x1 = x;
-            double y1 = y * crx - z * srx;
-            double z1 = y * srx + z * crx;
-            // Ry
-            double x2 = x1 * cry + z1 * sry;
+            double y1 = y * cosX - z * sinX;
+            double z1 = y * sinX + z * cosX;
+            // Rotate around Y axis
+            double x2 = x1 * cosY - z1 * sinY;
             double y2 = y1;
-            double z2 = -x1 * sry + z1 * cry;
-            // Rz
-            double x3 = x2 * crz - y2 * srz;
-            double y3 = x2 * srz + y2 * crz;
+            double z2 = x1 * sinY + z1 * cosY;
+            // Rotate around Z axis
+            double x3 = x2 * cosZ - y2 * sinZ;
+            double y3 = x2 * sinZ + y2 * cosZ;
             double z3 = z2;
-            return new Vec(x3 + cube.pivot().x() + cube.position().x(),
-                            y3 + cube.pivot().y() + cube.position().y(),
-                            z3 + cube.pivot().z() + cube.position().z());
+
+            return new Vec(
+                x3 + cube.pivot().x(),
+                y3 + cube.pivot().y(),
+                z3 + cube.pivot().z()
+            );
         };
     }
 }

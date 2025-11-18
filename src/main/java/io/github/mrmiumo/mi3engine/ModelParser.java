@@ -206,7 +206,7 @@ public class ModelParser extends RenderTool {
 
             var origin = rotation.get("origin");
             if (origin != null) {
-                cube.origin(parseVector(origin));
+                cube.pivot(parseVector(origin));
             }
         }
 

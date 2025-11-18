@@ -5,13 +5,12 @@ import java.util.EnumMap;
 /**
  * Data of a model's cube.
  * @param size Size of the cube in McModel unit (16 = 1 bloc)
- * @param position Position of the cube after applying CENTER_OFFSET
+ * @param position Position of the cube
  * @param rotation The angle of the cube in degrees
  * @param pivot the rotation origin point (nullable)
  * @param textures the texture applied to each face of the cube
  */
 public record Cube(Vec size, Vec position, Vec rotation, Vec pivot, EnumMap<Face, Texture> textures) implements Element {
-    private final static Vec CENTER_OFFSET = new Vec(8, -8, -8);
 
     /**
      * Creates a new cube builder defined by its size only.
@@ -32,7 +31,6 @@ public record Cube(Vec size, Vec position, Vec rotation, Vec pivot, EnumMap<Face
      * @param textures the texture to use for each face
      */
     public Cube {
-        position = position.add(CENTER_OFFSET);
         pivot = pivot == null ? new Vec(0, 0, 0) : pivot;
     }
 
@@ -69,25 +67,17 @@ public record Cube(Vec size, Vec position, Vec rotation, Vec pivot, EnumMap<Face
 
     @Override
     public Vec[] localVertices() {
-        Vec[] localVerts = new Vec[8];
-        localVerts[0] = new Vec(0,        0,        0);
-        localVerts[1] = new Vec(0,        0,        size.z());
-        localVerts[2] = new Vec(0,        size.y(), 0);
-        localVerts[3] = new Vec(0,        size.y(), size.z());
-
-        localVerts[4] = new Vec(size.x(), 0,        0);
-        localVerts[5] = new Vec(size.x(), 0,        size.z());
-        localVerts[6] = new Vec(size.x(), size.y(), 0);
-        localVerts[7] = new Vec(size.x(), size.y(), size.z());
-        int idx = 0;
-        for (int xi = 0 ; xi <= 1 ; xi++) {
-            for (int yi = 0 ; yi <= 1 ; yi++) {
-                for (int zi = 0 ; zi <= 1 ; zi++) {
-                    localVerts[idx++] = new Vec(xi * size.x(), yi * size.y(), zi * size.z());
-                }
-            }
-        }
-        return localVerts;
+        Vec[] v = new Vec[8];
+        v[0] = new Vec(0,        0       , 0       ); // bottom-left
+        v[1] = new Vec(0,        0       , size.z()); // bottom-right
+        v[2] = new Vec(0,        size.y(), 0       ); // top-left
+        v[3] = new Vec(0,        size.y(), size.z()); // top-right
+        // FRONT
+        v[4] = new Vec(size.x(), 0       , 0       ); // bottom-left
+        v[5] = new Vec(size.x(), 0       , size.z()); // bottom-right
+        v[6] = new Vec(size.x(), size.y(), 0       ); // top-left
+        v[7] = new Vec(size.x(), size.y(), size.z()); // top-right
+        return v;
     }
 
     /**
@@ -129,7 +119,7 @@ public record Cube(Vec size, Vec position, Vec rotation, Vec pivot, EnumMap<Face
             if (dz < 0) { z += dz; }
             
             return new Builder(
-                new Vec(-x, y, z),
+                new Vec(x, y, z),
                 new Vec(Math.abs(dx), Math.abs(dy), Math.abs(dz))
             );
         }
@@ -141,7 +131,7 @@ public record Cube(Vec size, Vec position, Vec rotation, Vec pivot, EnumMap<Face
          */
         public Builder(Vec position, Vec size) {
             this.position = position;
-            this.size = new Vec(-size.x(), size.y(), size.z());
+            this.size = new Vec(size.x(), size.y(), size.z());
         }
 
         /**
@@ -155,7 +145,7 @@ public record Cube(Vec size, Vec position, Vec rotation, Vec pivot, EnumMap<Face
             switch (axis) {
                 case X -> rotation = new Vec(angle, 0, 0);
                 case Y -> rotation = new Vec(0, -angle, 0);
-                case Z -> rotation = new Vec(0, 0, -angle);
+                case Z -> rotation = new Vec(0, 0, angle);
             }
             return this;
         }
@@ -168,40 +158,31 @@ public record Cube(Vec size, Vec position, Vec rotation, Vec pivot, EnumMap<Face
          * @return this builder
          */
         public Builder rotation(Vec rot) {
-            rotation = new Vec(rot.x(), -rot.y(), -rot.z());
+            rotation = new Vec(rot.x(), -rot.y(), rot.z());
             return this;
         }
 
         /**
          * Sets a rotation pivot point for this cube.
+         * Info: the pivot point is NOT linked to the position
          * @param x the x coordinate of the pivot point
          * @param y the y coordinate of the pivot point
          * @param z the z coordinate of the pivot point
          * @return this builder
          */
         public Builder pivot(double x, double y, double z) {
-            this.pivot = new Vec(-x - position.x(), y - position.y(), z - position.z());
-            return this;
+            return pivot(new Vec(x, y, z));
         }
         
         /**
-         * Sets a rotation pivot point for this cube. This method is a
-         * raw setter that does not takes the position into account.
+         * Sets a rotation pivot point for this cube.
+         * Info: the pivot point is NOT linked to the position
          * @param v the vector containing all pivot coordinates
          * @return this builder
          */
         public Builder pivot(Vec v) {
             this.pivot = v;
             return this;
-        }
-
-        /**
-         * Sets a rotation pivot point for this cube.
-         * @param origin the coordinates of the pivot point
-         * @return this builder
-         */
-        public Builder origin(Vec origin) {
-            return pivot(origin.x(), origin.y(), origin.z());
         }
 
         /**
@@ -280,7 +261,7 @@ public record Cube(Vec size, Vec position, Vec rotation, Vec pivot, EnumMap<Face
          * Adds this cube to the given engine
          * @param engine the engine to add the cube to
          */
-        public void render(RenderEngine engine) {
+        public void addTo(RenderEngine engine) {
             engine.addElement(build());
         }
     }

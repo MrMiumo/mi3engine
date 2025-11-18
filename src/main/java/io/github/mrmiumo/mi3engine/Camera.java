@@ -18,7 +18,7 @@ public class Camera {
     private double zoom = 1.0;
 
     /** The angle of the camera */
-    private Vec camRotation = new Vec(0,0,0);
+    private Vec camRotation = new Vec(0,180,0);
 
     /** The position of the camera (never changed) */
     private Vec camTranslation = new Vec(0,0,0);
@@ -37,7 +37,7 @@ public class Camera {
      * @return this config
      */
     public Camera setRotation(int x, int y, int z) {
-        camRotation = new Vec(-x, 180 - y, -z);
+        camRotation = new Vec(-x, 180 + y, z);
         return this;
     }
 
@@ -48,7 +48,7 @@ public class Camera {
      * @return the rotation currently set up
      */
     public Vec getRotation() {
-        return new Vec(- camRotation.x(), 180 - camRotation.y(), - camRotation.z());
+        return new Vec(-camRotation.x(), camRotation.y() - 180, camRotation.z());
     }
 
     /**
@@ -66,7 +66,7 @@ public class Camera {
      * @return this config
      */
     public Camera setTranslation(double x, double y) {
-        camTranslation = new Vec(-x * 5.25, -y * 5.25, 0);
+        camTranslation = new Vec(x * 5.25, - y * 5.25, 0);
         return this;
     }
 
@@ -77,7 +77,7 @@ public class Camera {
      * @return the translation currently set up
      */
     public Vec getTranslation() {
-        return new Vec(- camTranslation.x() / 5.25, - camTranslation.y() / 5.25, 0);
+        return new Vec(camTranslation.x() / 5.25, - camTranslation.y() / 5.25, 0);
     }
 
     /**

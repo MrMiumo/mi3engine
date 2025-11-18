@@ -98,7 +98,7 @@ public class AutoFramer extends RenderTool {
                         .apply(localVerts[idxs[k]])
                         .rotate(cam.rotation())
                         .sub(cam.translation());
-                    double sxPix = centerX + (view.x() * cam.zoom());
+                    double sxPix = centerX - (view.x() * cam.zoom());
                     double syPix = centerY - (view.y() * cam.zoom());
                     position[k] = new Vec2(sxPix, syPix);
                 }

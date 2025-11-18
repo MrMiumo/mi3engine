@@ -132,7 +132,7 @@ class RenderCore implements RenderEngine {
                 for (int k = 0 ; k < 4 ; k++) {
                     Vec world = modelPoint.apply(localVerts[idxs[k]]);
                     Vec view = world.rotate(config.rotation()).sub(config.translation());
-                    double sxPix = center.x() + (view.x() * zoom);
+                    double sxPix = center.x() - (view.x() * zoom);
                     double syPix = center.y() - (view.y() * zoom);
                     screenVerts[k] = new Vec2(sxPix, syPix);
                     worldVerts[k] = world;
@@ -219,7 +219,7 @@ class RenderCore implements RenderEngine {
 
         double depth = w0 * v0.depth() + w1 * v1.depth() + w2 * v2.depth();
         int idx = rowOffset + x;
-        if (depth <= zBuffer[idx]) return; // not visible compared to current zbuffer
+        if (depth <= zBuffer[idx]) return; // not visible compared to current zBuffer
 
         // interpolate normalized UV inside the texture region (u,v in [0..1])
         double u = w0 * v0.u() + w1 * v1.u() + w2 * v2.u();

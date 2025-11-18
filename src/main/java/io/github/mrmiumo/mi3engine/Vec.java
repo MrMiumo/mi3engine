@@ -13,6 +13,17 @@ public record Vec(double x, double y, double z) {
 
     /**
      * Computes the sum of this vector with the given one.
+     * @param x the x attribute of the other vector
+     * @param y the y attribute of the other vector
+     * @param z the z attribute of the other vector
+     * @return the new vector resulting of the sum
+     */
+    public Vec add(double x, double y, double z) {
+        return new Vec(this.x + x, this.y + y, this.z + z);
+    }
+
+    /**
+     * Computes the sum of this vector with the given one.
      * @param other the other vector to sum with this one
      * @return the new vector resulting of the sum
      */

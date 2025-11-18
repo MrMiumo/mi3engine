@@ -13,23 +13,6 @@ package io.github.mrmiumo.mi3engine;
  */
 public record Trapezoid(Vec size, Vec position, Vec rotation, Vec pivot, Vec taper, Texture[] textures) implements Element {
 
-    private final static Vec CENTER_OFFSET = new Vec(8, -8, -8);
-
-    /**
-     * Creates a new trapezoid.
-     * @param size the dimensions of the base of the trapezoid (the cube
-     *     before being tapped)
-     * @param position the coordinates of the base cube
-     * @param rotation the local rotation in degrees around the pivot
-     * @param pivot the point around which the element is rotated
-     * @param taper how much faces expands
-     * @param textures array of 6 textures for faces (+X, -X, +Y, -Y, +Z, -Z)
-     */
-    public Trapezoid {
-        size = new Vec(-size.x(), size.y(), size.z());
-        position = position.add(CENTER_OFFSET);
-    }
-
     @Override
     public Texture getTexture(Face face) {
         return textures != null ? textures[face.ordinal()] : null;

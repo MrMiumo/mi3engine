@@ -36,7 +36,7 @@ public record Triangle(TriVertex a, TriVertex b, TriVertex c, Texture texture, d
         Vec worldB = worldVerts[points[1]];
         Vec worldC = worldVerts[points[2]];
         var normal = getNormal(worldA, worldB, worldC).rotate(cam.rotation());
-        if (normal.z() < 0) return null;
+        if (normal.z() > 0) return null;
 
         return new Triangle(
             a, b, c,
@@ -57,7 +57,7 @@ public record Triangle(TriVertex a, TriVertex b, TriVertex c, Texture texture, d
     private static double computeIntensity(Camera cam, Vec normal) {
         /* Computes the light from the normal */
         var spot = cam.spotDirection();
-        double diffuseFactor = normal.dot(new Vec(-spot.x(), -spot.y(), spot.z()));
+        double diffuseFactor = normal.dot(new Vec(spot.x(), spot.y(), spot.z()));
         double clampedDiffuseFactor = Math.max(0, diffuseFactor);
         double finalIntensity = cam.ambientLight() + cam.spotLight() * clampedDiffuseFactor;
         if (normal.y() < 0) finalIntensity /= 1 -normal.y();
