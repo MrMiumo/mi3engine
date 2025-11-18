@@ -39,6 +39,9 @@ public class ModelParser extends RenderTool {
     /** Lists of all textures with their ID and image */
     private final HashMap<String, TextureHolder> textures = new HashMap<>();
 
+    /** Lists of all defined display settings */
+    private final HashMap<Display.Type, Display> display = new HashMap<>();
+
     /** Path of the textures folder in the pack being parsed */
     private Path texturesFolder;
 
@@ -95,6 +98,7 @@ public class ModelParser extends RenderTool {
             /* Normal model */
             json.get("elements").elements().forEachRemaining(element -> parseElement(element));
         }
+        parseDisplay(json.get("display"));
     }
 
     @Override
@@ -356,9 +360,40 @@ public class ModelParser extends RenderTool {
     }
 
 
+    /* ************************************************************ *\
+     *                           DISPLAY                            *
+    \* ************************************************************ */
+
+    /**
+     * Parse the given display section of the current model. This
+     * section defines how the model should be positioned when displayed
+     * in the inventory, containers, gui, as equipment, ...
+     * @param json the content of the "display" json node
+     * @return the list of display with their types
+     * @throws IOException in case the display section is malformed
+     */
+    private void parseDisplay(JsonNode json) throws IOException {
+        if (json == null) return;
+        json.properties().stream().forEach(d -> {
+            var key = Display.Type.from(d.getKey());
+            if (key == null) return;
+            display.put(key, Display.from(d.getValue()));
+        });
+    }
+
+    /**
+     * Gets the display settings associated with the given slot.
+     * @param type the slot to get display settings for
+     * @return the display settings or {@link Display#NULL} if not specified in the model
+     */
+    public Display getDisplay(Display.Type type) {
+        return display.getOrDefault(type, Display.NULL);
+    }
 
 
 
+
+    
     /**
      * Loads the 'default.minecraft.pack' property from the file
      * application.properties if available.
@@ -426,6 +461,75 @@ public class ModelParser extends RenderTool {
             if (texture != null) return texture;
             var reference = textures.get(id);
             return reference == null ? null : reference.get();
+        }
+    }
+
+    /**
+     * Stores the displays information of a minecraft model.
+     */
+    public record Display(Vec rotation, Vec pivot, Vec translation, Vec scale) {
+        public static final Display NULL = new Display(Vec.ZERO, Vec.ZERO, new Vec(1, 1, 1));
+        
+        public Display {
+            if (rotation == null) rotation = Vec.ZERO;
+            else rotation = rotation.localToGlobal();
+            if (translation == null) translation = Vec.ZERO;
+            if (scale == null) scale = new Vec(1, 1, 1);
+        }
+        
+        public Display(Vec rotation, Vec translation, Vec scale) {
+            this(rotation, translation, translation, scale);
+        }
+
+        /**
+         * Parse a json object and creates the corresponding Display.
+         * @param json the json child containing display attributes
+         * @return the display
+         */
+        public static Display from(JsonNode json) {
+            return new Display(
+                vecFrom(json.get("rotation")),
+                vecFrom(json.get("translation")),
+                vecFrom(json.get("scale"))
+            );
+        }
+
+        private static Vec vecFrom(JsonNode json) {
+            if (json == null) return null;
+            var vals = json.elements();
+            return new Vec(
+                vals.next().asDouble(),
+                vals.next().asDouble(),
+                vals.next().asDouble())
+            ;
+        }
+
+        public enum Type {
+            THIRD_PERSON_RIGHT("thirdperson_righthand"),
+            THIRD_PERSON_LEFT("thirdperson_lefthand"),
+            FIRST_PERSON_RIGHT("firstperson_righthand"),
+            FIRST_PERSON_LEFT("firstperson_lefthand"),
+            HEAD("head"),
+            GROUND("ground"),
+            FRAME("fixed"),
+            SHELF("on_shelf"),
+            GUI("gui");
+
+            private final String key;
+            Type(String key) { this.key = key; }
+
+            /**
+             * Gets the Type enum entry that corresponds to the given
+             * JSON key (from a valid model file, in the "display" section)
+             * @param s the key to get the type from
+             * @return the type or null if the given key is not known
+             */
+            public static Type from(String s) {
+                for (var t : values()) {
+                    if (t.key.equals(s)) return t;
+                }
+                return null;
+            }
         }
     }
 }

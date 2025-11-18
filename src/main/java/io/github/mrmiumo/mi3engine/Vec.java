@@ -58,6 +58,15 @@ public record Vec(double x, double y, double z) {
         return new Vec(x / divisor, y / divisor, z / divisor);
     }
 
+    /** 
+     * Multiply this vector by the given value
+     * @param other the value to multiply to this one
+     * @return the new vector resulting of the multiplication
+     */
+    public Vec mul(double factor) {
+        return new Vec(x * factor, y * factor, z * factor);
+    }
+
     /**
      * Calculates the cross vector between this ont and the given one.
      * @param other the vector to cross with
@@ -133,5 +142,46 @@ public record Vec(double x, double y, double z) {
             yx * x + yy * y + yz * z,
             zx * x + zy * y + zz * z
         );
+    }
+
+    /**
+     * Converts an intrinsic rotation (on local axis) to a extrinsic
+     * one (global axis) that can be given to the local 3D engine.
+     * @return the corresponding global rotation of this vector (assumed
+     *     as an intrinsic one)
+     */
+    public Vec localToGlobal() {
+        double x = Math.toRadians(this.x);
+        double y = Math.toRadians(this.y);
+        double z = Math.toRadians(this.z);
+        final double cosX = Math.cos(x), sinX = Math.sin(x);
+        final double cosY = Math.cos(y), sinY = Math.sin(y);
+        final double cosZ = Math.cos(z), sinZ = Math.sin(z);
+
+        var m20 = sinX * sinZ + cosX * -sinY * cosZ;
+        if (Math.abs(m20) < 0.999999) {
+            var m00 = cosY * cosZ;
+            var m10 = cosX * sinZ - sinX * -sinY * cosZ;
+            var m21 = sinX * cosZ + cosX * -sinY * -sinZ;
+            var m22 = cosX * cosY;
+            return new Vec(
+                Math.toDegrees(Math.atan2(m21, m22)),
+                Math.toDegrees(Math.asin(-m20)),
+                Math.toDegrees(Math.atan2(m10, m00))
+            );
+        } else {
+            var m01 = cosY * -sinZ;
+            var m11 = cosX * cosZ - sinX * -sinY * -sinZ;
+            return new Vec(
+                Math.toDegrees(0),
+                Math.toDegrees(Math.asin(-m20)),
+                Math.toDegrees(Math.atan2(-m01, m11))
+            );
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Vec[%7.3f,%7.3f,%7.3f]", x, y, z);
     }
 }
