@@ -11,7 +11,7 @@ import io.github.mrmiumo.mi3engine.Element.Face;
 
 public class BasicAxisTests {
 
-    private static final Texture TEXTURE = Texture.generateDefault();
+    private static final Texture TEXTURE = Texture.DefaultTexture.GREEN.texture();
 
     /**
      * Make sure the bases of the render engine are working fine.

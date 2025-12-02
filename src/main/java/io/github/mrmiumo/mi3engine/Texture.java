@@ -160,44 +160,9 @@ public record Texture(
      * @return the default texture
      */
     public static Texture generateDefault() {
-        final var colorsSets = new int[][]{
-            new int[]{ 0x62cc82, 0x5abb78, 0x58b675, 0x50a66a },      // Green
-            new int[]{ 0xcc84aa, 0xbb799c, 0xb67698, 0xa66c8b },      // Pink
-            new int[]{ 0xcc7c79, 0xbb726f, 0xb66f6c, 0xa66562 },      // Red
-            new int[]{ 0x81bccc, 0x77acbb, 0x74a8b6, 0x6a99a6 },      // Blue
-            new int[]{ 0xccc67a, 0xbbb670, 0xb6b16d, 0xa6a264 }       // Gold
-        };
-        var colors = colorsSets[nextColorSet++];
-        nextColorSet %= colorsSets.length;
-        var image = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
-        var canvas = image.getGraphics();
-
-        /* Set background color */
-        canvas.setColor(new Color(colors[1]));
-        canvas.fillRect(0, 0, 16, 16);
-
-        /** Add check board */
-        canvas.setColor(new Color(colors[2]));
-        for (var i = 0 ;  i < 15 * 15 ; i += 2) {
-            canvas.fillRect(i % 15 + 1, i / 15 + 1, 1, 1);
-        }
-
-        /** Add light edges and icon */
-        canvas.setColor(new Color(colors[0]));
-        canvas.fillRect(0, 0, 1, 15);
-        canvas.fillRect(0, 0, 15, 1);
-        canvas.fillRect(4, 8, 2, 5);
-        canvas.fillRect(7, 10, 2, 3);
-        canvas.fillRect(10, 3, 2, 10);
-
-        /** Add dark edges */
-        canvas.setColor(new Color(colors[3]));
-        canvas.fillRect(15, 1, 1, 15);
-        canvas.fillRect(1, 15, 15, 1);
-
-        canvas.dispose();
-        return new Texture("default#" + (nextColorSet - 1), image, getPixels(image), 0, 0, 16, 16, 0, false);
-    
+        var texture = DefaultTexture.values()[nextColorSet++].texture();
+        nextColorSet %= DefaultTexture.values().length;
+        return texture;
     }
 
     /**
@@ -308,5 +273,59 @@ public record Texture(
         g.drawImage(image, 0, 0, null);
         g.dispose();
         return ((DataBufferInt)img.getRaster().getDataBuffer()).getData();
+    }
+
+    /**
+     * Lists of all different default colored textures.
+     */
+    public enum DefaultTexture {
+        GREEN(new int[]{ 0x62cc82, 0x5abb78, 0x58b675, 0x50a66a }),
+        PINK( new int[]{ 0xcc84aa, 0xbb799c, 0xb67698, 0xa66c8b }),
+        RED(  new int[]{ 0xcc7c79, 0xbb726f, 0xb66f6c, 0xa66562 }),
+        BLUE( new int[]{ 0x81bccc, 0x77acbb, 0x74a8b6, 0x6a99a6 }),
+        GOLD( new int[]{ 0xccc67a, 0xbbb670, 0xb6b16d, 0xa6a264 });
+
+        private final int[] colors;
+
+        DefaultTexture(int[] colors) {
+            this.colors = colors;
+        }
+
+        /**
+         * Gets the texture with this color. This method computes the
+         * texture without any cache. Calling this method twice will
+         * cost 2x more than storing its result!
+         * @return the texture
+         */
+        public Texture texture() {
+            var image = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
+            var canvas = image.getGraphics();
+
+            /* Set background color */
+            canvas.setColor(new Color(colors[1]));
+            canvas.fillRect(0, 0, 16, 16);
+
+            /** Add check board */
+            canvas.setColor(new Color(colors[2]));
+            for (var i = 0 ;  i < 15 * 15 ; i += 2) {
+                canvas.fillRect(i % 15 + 1, i / 15 + 1, 1, 1);
+            }
+
+            /** Add light edges and icon */
+            canvas.setColor(new Color(colors[0]));
+            canvas.fillRect(0, 0, 1, 15);
+            canvas.fillRect(0, 0, 15, 1);
+            canvas.fillRect(4, 8, 2, 5);
+            canvas.fillRect(7, 10, 2, 3);
+            canvas.fillRect(10, 3, 2, 10);
+
+            /** Add dark edges */
+            canvas.setColor(new Color(colors[3]));
+            canvas.fillRect(15, 1, 1, 15);
+            canvas.fillRect(1, 15, 15, 1);
+
+            canvas.dispose();
+            return new Texture("default#" + name(), image, getPixels(image), 0, 0, 16, 16, 0, false);
+        }
     }
 }
