@@ -65,6 +65,26 @@ public record Texture(
     }
 
     /**
+     * Creates a new texture from the given image data. The uv box uses
+     * the full image and no rotation is applied. The texture name can
+     * be null since only used for debug.<p>
+     * WARNING: This function does NOT supports animated textures
+     * @param path the image to load as texture
+     * @return the corresponding texture
+     * @throws IOException in case of error while reading the file
+     * @see #from(Path)
+     */
+    public static Texture from(BufferedImage img) throws IOException {
+        var w = img.getWidth();
+        var h = img.getHeight();
+        var pixels = getPixels(img);
+        if (isEmpty(pixels, w, 0, 0, w, h)) {
+            return null;
+        }
+        return new Texture(null, img, pixels, 0, 0, w, h, 0, isTransparent(img, pixels, 0, 0, w, h));
+    }
+
+    /**
      * Creates a new texture from this one by changing the UV and
      * rotation but keeping the same image.<p>
      * This enables to not recalculate the transparency of the texture.

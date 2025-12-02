@@ -62,7 +62,7 @@ public class SkinRender extends RenderTool {
     private final Element[] parts = new Element[32];
 
     /**
-     * Creates a new engine based on the given one. This is a tool to
+     * Creates a new engine based on the given skin. This is a tool to
      * generates skin render with custom poses.
      * @param engine the engine to rely on (not another SkinRender)
      * @param skin the path of the skin to display
@@ -74,6 +74,20 @@ public class SkinRender extends RenderTool {
             throw new IllegalArgumentException("The skin must be a regular file");
         }
 
+        this.skin = Texture.from(skin);
+        this.marks = getSkinMarks(this.skin);
+        body();
+    }
+
+    /**
+     * Creates a new engine based on the given skin. This is a tool to
+     * generates skin render with custom poses.
+     * @param engine the engine to rely on (not another SkinRender)
+     * @param skin the path of the skin to display
+     * @throws IOException in case of error while reading the skin
+     */
+    public SkinRender(RenderEngine engine, BufferedImage skin) throws IOException {
+        super(engine);
         this.skin = Texture.from(skin);
         this.marks = getSkinMarks(this.skin);
         body();
@@ -168,7 +182,7 @@ public class SkinRender extends RenderTool {
             .build();
 
         /* Second layer */
-        parts[1] = Cube.from(from.add(FROM_OFFSET), to.add(TO_OFFSET))
+        parts[1] = Cube.from(from.add(-.5, -.5, -.5), to.add(.5, .5, .5))
             .pivot(pivot)
             .rotation(rotation)
             .texture(Face.UP,    skin, 0, 10, 0, 12, 2)
