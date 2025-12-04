@@ -3,7 +3,7 @@ package io.github.mrmiumo.mi3engine;
 import java.awt.image.BufferedImage;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 /**
  * Orthographic headless renderer for textures cubes. Each cube can
@@ -119,7 +119,7 @@ public interface RenderEngine {
      * @param cube the cube to generate the conversion function for
      * @return the convert function
      */
-    static Function<Vec, Vec> modelToWorld(Element cube) {
+    static UnaryOperator<Vec> modelToWorld(Element cube) {
         final double rx = Math.toRadians(cube.rotation().x());
         final double ry = Math.toRadians(cube.rotation().y());
         final double rz = Math.toRadians(cube.rotation().z());

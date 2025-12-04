@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.function.Function;
 
 import io.github.mrmiumo.mi3engine.Element.Face;
@@ -120,6 +121,12 @@ public class SkinRender extends RenderTool {
             addEquipment(equipment.getKey(), slotDisplay, engine);
         }
         return this;
+    }
+
+    @Override
+    public List<Element> getElements() {
+        if (super.getElements().isEmpty()) build();
+        return super.getElements();
     }
 
     private void addEquipment(Slot slot, Display slotDisplay, ModelParser engine) {

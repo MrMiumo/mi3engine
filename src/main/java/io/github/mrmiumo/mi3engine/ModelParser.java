@@ -286,8 +286,8 @@ public class ModelParser extends RenderTool {
         if (texture == null) return; // Invalid!
 
         var pixels = texture.pixels();
-        int height = texture.source().getHeight();
-        int width = texture.source().getWidth();
+        int height = texture.sourceHeight();
+        int width = texture.sourceWidth();
         var depth = height / 16;
 
         var covered = new boolean[height * width];
@@ -343,8 +343,8 @@ public class ModelParser extends RenderTool {
      * @return the cube!
      */
     private static Cube generateCube(Texture texture, int x, int y, int w, int h, int depth) {
-        var width = texture.source().getWidth();
-        var height = texture.source().getHeight();
+        var width = texture.sourceWidth();
+        var height = texture.sourceHeight();
 
         var u = 16f / width;
         var v = 16f / height;

@@ -1,7 +1,5 @@
 package io.github.mrmiumo.mi3engine;
 
-import static io.github.mrmiumo.mi3engine.RenderUtils.clamp;
-
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
@@ -22,16 +20,44 @@ import javax.imageio.ImageIO;
  * @param w the width of the uv box
  * @param h the height of the uv box
  * @param rotate the rotation of the texture (1 = 90° CW and so on)
- * @param isTransparent whether or not this texture has transparency.
+ * @param isTransparent whether this texture has transparency.
  *     DO NOT SET THIS VALUE BY YOURSELF
  */
-public record Texture(
-    String name, BufferedImage source, int[] pixels, float x, float y,
-    float w, float h, int rotate, boolean isTransparent
-) {
+public class Texture {
 
     /** Iterator over each default texture colorSet available */
     private static int nextColorSet = 0;
+
+    public final String name;
+    private final BufferedImage source;
+    private final int sourceW;
+    private final int sourceH;
+    private final int[] pixels;
+    private final int x;
+    private final int y;
+    private final float[] rotate;
+    private final boolean isTransparent;
+
+    private Texture(
+        String name, BufferedImage source, int[] pixels, float x, float y,
+        float w, float h, int rotate, boolean isTransparent
+    ) {
+        this.name = name;
+        this.source = source;
+        this.sourceW = source.getWidth();
+        this.sourceH = source.getHeight();
+        this.pixels = pixels;
+        this.x = (int)(w < 0 ? x - 1 : x);
+        this.y = (int)(h < 0 ? y - 1 : y);
+        this.rotate = switch (rotate) {
+            // u = [0]u + [1]v + [2]; v = [3]u + [4]v + [5]
+            case 0 ->  new float[]{ 1*w,    0,      this.x,    0, -1*h,  1*h+this.y};
+            case 1 ->  new float[]{   0, -1*w,  1*w+this.x, -1*h,    0,  1*h+this.y};
+            case 2 ->  new float[]{-1*w,    0,  1*w+this.x,    0,  1*h,      this.y};
+            default -> new float[]{   0,  1*w,      this.x,  1*h,    0,      this.y};
+        };
+        this.isTransparent = isTransparent;
+    }
 
     /**
      * Creates a new texture from the given image file. The uv box uses
@@ -68,13 +94,12 @@ public record Texture(
      * Creates a new texture from the given image data. The uv box uses
      * the full image and no rotation is applied. The texture name can
      * be null since only used for debug.<p>
-     * WARNING: This function does NOT supports animated textures
-     * @param path the image to load as texture
+     * WARNING: This function does NOT support animated textures
+     * @param img the image to load as texture
      * @return the corresponding texture
-     * @throws IOException in case of error while reading the file
      * @see #from(Path)
      */
-    public static Texture from(BufferedImage img) throws IOException {
+    public static Texture from(BufferedImage img) {
         var w = img.getWidth();
         var h = img.getHeight();
         var pixels = getPixels(img);
@@ -105,25 +130,67 @@ public record Texture(
             y -= h;
         }
         /* Adapt uv from 16x16 to the real size */
-        if (source.getWidth() != 16 || source.getHeight() != 16) {
-            x = x * source.getWidth() / 16f;
-            y = y * source.getHeight() / 16f;
-            w = w * source.getWidth() / 16f;
-            h = h * source.getHeight() / 16f;
+        if (sourceW != 16 || sourceH != 16) {
+            x = x * sourceW / 16f;
+            y = y * sourceH / 16f;
+            w = w * sourceW / 16f;
+            h = h * sourceH / 16f;
         }
 
-        /* Make sure the face have pixels */
-        if (isEmpty(pixels, source.getWidth(), x, y, w, h)) {
+        /* Make sure the face has pixels */
+        if (isEmpty(pixels, sourceW, x, y, w, h)) {
             return null; // No need for texture!
         }
 
-        var transparency = isTransparent ? isTransparent(source, pixels, x, y, w, h) : false;
+        var transparency = isTransparent && isTransparent(source, pixels, x, y, w, h);
         return new Texture(name, source, pixels, x, y, w, h, rotate, transparency);
     }
 
     /**
-     * Gets the color of the pixel matching the given position in the
-     * texture, taking care of texture rotation, and uv.
+     * Gets the pixels of the source texture.
+     * @return the pixels of the texture
+     */
+    public int[] pixels() {
+        return pixels;
+    }
+
+    /**
+     * Gets the original image used for this texture (before UVs)
+     * @return the source image
+     */
+    public BufferedImage source() {
+        return source;
+    }
+
+    /**
+     * Gets the width in pixels of the source image.
+     * @return the width in pixels of the source image
+     */
+    public int sourceWidth() {
+        return sourceW;
+    }
+
+    /**
+     * Gets the height in pixels of the source image.
+     * @return the height in pixels of the source image
+     */
+    public int sourceHeight() {
+        return sourceH;
+    }
+
+    /**
+     * Gets whether this texture contains transparent pixels or not
+     * @return true if the texture contains transparent pixels
+     */
+    public boolean isTransparent() {
+        return isTransparent;
+    }
+
+    /**
+     * Gets the texel [XY] that enable to precompute color pixel
+     * from UV to texture.
+     * Those values take into account the position of the pixel in the
+     * texture, texture rotation, and uv.
      * <p>
      * Both u and v are normalized, so their values are between 0 and 1,
      * where 1 is the full width/height of the texture (the pixel at
@@ -133,26 +200,12 @@ public record Texture(
      * @param v the position of the pixel to get on the vertical axis
      * @return the ARGB code of the pixel
      */
-    public int getRGB(double u, double v) {
-        u = clamp(u, 0, 1);
-        v = 1 - clamp(v, 0, 1);
-        if (rotate == 1) {
-            var t = u;
-            u = v;
-            v = 1 - t;
-        } else if (rotate == 2) {
-            u = 1 - u;
-            v = 1 - v;
-        } else if (rotate == 3) {
-            var t = u;
-            u = 1 - v;
-            v = t;
-        }
-        var lclX = w < 0 ? x - 1 : x;
-        var lclY = h < 0 ? y - 1 : y;
-        var tx = (int)clamp(lclX + (int)(u * w), 0, source.getWidth() - 1);
-        var ty = (int)clamp(lclY + (int)(v * h), 0, source.getHeight() - 1);
-        return pixels[ty * source.getWidth() + tx];
+    public int[] getRGBTexel(double u, double v) {
+        var tx = (int)(rotate[0]*u + rotate[1]*v + rotate[2]);
+        var ty = (int)(rotate[3]*u + rotate[4]*v + rotate[5]);
+        if (tx < 0) tx = 0; else if (tx >= sourceW) tx = sourceW - 1;
+        if (ty < 0) ty = 0; else if (ty >= sourceH) ty = sourceH - 1;
+        return new int[] { tx, ty };
     }
 
     /**
@@ -266,9 +319,7 @@ public record Texture(
      * @return all the pixels of the image
      */
     private static int[] getPixels(BufferedImage image) {
-        var img = new BufferedImage(
-            image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB
-        );
+        var img = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
         var g = img.createGraphics();
         g.drawImage(image, 0, 0, null);
         g.dispose();

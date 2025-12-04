@@ -177,78 +177,58 @@ class RenderCore implements RenderEngine {
         int minY = (int)Math.floor(RenderUtils.min(v0.y(), v1.y(), v2.y()));
         int maxY = (int)Math.ceil(RenderUtils.max(v0.y(), v1.y(), v2.y()));
         if (maxX < 0 || maxY < 0 || minX >= width || minY >= height) return;
-        minX = RenderUtils.clamp(minX, 0, width - 1);
-        maxX = RenderUtils.clamp(maxX, 0, width - 1);
-        minY = RenderUtils.clamp(minY, 0, height - 1);
-        maxY = RenderUtils.clamp(maxY, 0, height - 1);
 
         /* Make sur the face is visible */
         double area = edgeFunction(v0, v1, v2.x(), v2.y());
         if (Math.abs(area) < 1e-9) return;
-        
+
+        minX = RenderUtils.clamp(minX, 0, width - 1);
+        maxX = RenderUtils.clamp(maxX, 0, width - 1);
+        minY = RenderUtils.clamp(minY, 0, height - 1);
+        maxY = RenderUtils.clamp(maxY, 0, height - 1);
+        var texture = triangle.texture();
+        var texturePx = texture.pixels();
+        var textureW = texture.sourceWidth();
+        var t0 = texture.getRGBTexel(v0.u(), v0.v());
+        var t1 = texture.getRGBTexel(v1.u(), v1.v());
+        var t2 = texture.getRGBTexel(v2.u(), v2.v());
+
         /* Try to draw each pixel within the triangle bounding box */
         for (int py = minY ; py <= maxY ; py++) {
             int rowOffset = py * width;
+            double sy = py + 0.5;
+
             for (int px = minX ; px <= maxX ; px++) {
-                renderTrianglePixel(px, py, area, triangle, rowOffset);
+                double sx = px + 0.5;
+                // compute barycentric numerators
+                double w0 = edgeFunction(v1, v2, sx, sy);
+                if (w0 < 0) continue;
+                double w1 = edgeFunction(v2, v0, sx, sy);
+                if (w1 < 0) continue;
+                double w2 = edgeFunction(v0, v1, sx, sy);
+                if (w2 < 0) continue;
+                w0 /= area;
+                w1 /= area;
+                w2 /= area;
+
+                double depth = w0 * v0.depth() + w1 * v1.depth() + w2 * v2.depth();
+                int idx = rowOffset + px;
+                if (depth <= zBuffer[idx]) continue; // not visible compared to current zBuffer
+
+                /* Get color in texture */
+                var texX = (int)(w0 * t0[0] + w1 * t1[0] + w2 * t2[0]);
+                var texY = (int)(w0 * t0[1] + w1 * t1[1] + w2 * t2[1]);
+                if (texX < 0) texX = 0;
+                if (texY < 0) texY = 0;
+
+                pixels[idx] = RenderUtils.transformColor(
+                    texturePx[texY * textureW + texX],
+                    triangle.intensity(),
+                    pixels[idx]
+                );
+                zBuffer[idx] = (float)depth;
             }
         }
-    }
-
-    /**
-     * Render the pixel at the given coordinates on the final image
-     * from the given triangle.
-     * @param x the x coordinate of the pixel to draw on the screen
-     * @param y the y coordinate of the pixel to draw on the screen
-     * @param area the area of the face
-     * @param triangle the triangle to draw the pixel from
-     * @param rowOffset the offset of the row in the pixels array
-     */
-    private void renderTrianglePixel(int x, int y, double area, Triangle triangle, int rowOffset) {
-        TriVertex v0 = triangle.a(), v1 = triangle.b(), v2 = triangle.c();
-
-        // sample position in screen space (pixel center)
-        double sx = x + 0.5;
-        double sy = y + 0.5;
-        // compute barycentric numerators
-        double w0 = edgeFunction(v1, v2, sx, sy);
-        if (w0 < 0) return;
-        double w1 = edgeFunction(v2, v0, sx, sy);
-        if (w1 < 0) return;
-        double w2 = edgeFunction(v0, v1, sx, sy);
-        if (w2 < 0) return;
-        w0 /= area;
-        w1 /= area;
-        w2 /= area;
-
-        double depth = w0 * v0.depth() + w1 * v1.depth() + w2 * v2.depth();
-        int idx = rowOffset + x;
-        if (depth <= zBuffer[idx]) return; // not visible compared to current zBuffer
-
-        // interpolate normalized UV inside the texture region (u,v in [0..1])
-        double u = w0 * v0.u() + w1 * v1.u() + w2 * v2.u();
-        double v = w0 * v0.v() + w1 * v1.v() + w2 * v2.v();
-
-        pixels[idx] = computeColor(u, v, triangle, idx);
-        zBuffer[idx] = (float)depth;
-    }
-
-    /**
-     * Computes the color to put on the final image.
-     * For some reason, keeping this function enables to make the code
-     * run faster!
-     * @param u the position of the pixel to pick from the texture (X)
-     * @param v the position of the pixel to pick form the texture (Y)
-     * @param triangle the triangle being drawn
-     * @param idx the id of the pixel to set
-     * @return the color to put in the pixel grid
-     */
-    private int computeColor(double u, double v, Triangle triangle, int idx) {
-        return RenderUtils.transformColor(
-            triangle.texture().getRGB(u, v),
-            triangle.intensity(),
-            pixels[idx]
-        );
     }
 
     /**

@@ -37,6 +37,21 @@ public interface Element {
     public Vec[] localVertices();
 
     /**
+     * Computes the world vertices for this element.<p>
+     * Same as {@link #localVertices()} but converted using {@link RenderEngine#modelToWorld}
+     * @return the 8 world vertices
+     */
+    default Vec[] worldVertices() {
+        Vec[] vertices = localVertices();
+        var modelToWorld = RenderEngine.modelToWorld(this);
+
+        for (var i = 0 ; i < vertices.length ; i++) {
+            vertices[i] = modelToWorld.apply(vertices[i]);
+        }
+        return vertices;
+    }
+
+    /**
      * Moves this elements by the specified offset. This updates the
      * position and pivot.
      * @param offset the amount of distance to move to

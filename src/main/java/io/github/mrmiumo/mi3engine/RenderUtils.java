@@ -68,8 +68,8 @@ public final class RenderUtils {
      * @param color the color to blend with
      * @return the transformed argb
      */
-    static int transformColor(int argb, double intensity, int color) {
-        int a = (argb >>> 24) & 0xFF; // Alpha
+    static int transformColor(int argb, double intensity, int color) { // FIXME Hotspot
+        int a = (argb >>> 24); // Alpha
         int r = (argb >> 16) & 0xFF;  // Red
         int g = (argb >> 8) & 0xFF;   // Green
         int b = argb & 0xFF;          // Blue
@@ -78,15 +78,13 @@ public final class RenderUtils {
         r *= intensity;
         g *= intensity;
         b *= intensity;
-        if (r > 255) r = 255; else if (r < 0) r = 0;
-        if (g > 255) g = 255; else if (g < 0) g = 0;
-        if (b > 255) b = 255; else if (b < 0) b = 0;
-        var aColor = (color >>> 24) & 0xFF;
+
+        var aColor = (color >>> 24);
         if (aColor < 254 && aColor == a) color = 0;
 
         /* Blend with other color */
         if (a < 255) {
-            int ca = (color >>> 24) & 0xFF; // Alpha
+            int ca = (color >>> 24); // Alpha
             int cr = (color >> 16) & 0xFF;  // Red
             int cg = (color >> 8) & 0xFF;   // Green
             int cb = color & 0xFF;          // Blue
