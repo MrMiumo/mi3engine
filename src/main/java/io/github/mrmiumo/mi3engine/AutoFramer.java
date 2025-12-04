@@ -79,9 +79,11 @@ public class AutoFramer extends RenderTool {
      */
     private int[] boundingBox() {
         final var box = new int[]{ Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE };
-        final var centerX = engine.size().x() / 2;
-        final var centerY = engine.size().y() / 2;
+        final var size = engine.size();
+        final var centerX = size.x() / 2;
+        final var centerY = size.y() / 2;
         final var cam = camera();
+        var zoom = cam.zoom() * Math.min(size.x(), size.y()) / 1287;
 
         /* Create triangles from boxes */
         for (var element : engine.getElements()) {
@@ -100,8 +102,8 @@ public class AutoFramer extends RenderTool {
                         .apply(localVerts[idxs[k]])
                         .rotate(cam.rotation())
                         .sub(cam.translation());
-                    double sxPix = centerX - (view.x() * cam.zoom());
-                    double syPix = centerY - (view.y() * cam.zoom());
+                    double sxPix = centerX - (view.x() * zoom);
+                    double syPix = centerY - (view.y() * zoom);
                     position[k] = new Vec2(sxPix, syPix);
                 }
                 

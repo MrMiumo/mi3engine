@@ -216,13 +216,11 @@ class RenderCore implements RenderEngine {
                 if (depth <= zBuffer[idx]) continue; // not visible compared to current zBuffer
 
                 /* Get color in texture */
-                var texX = (int)(w0 * t0[0] + w1 * t1[0] + w2 * t2[0]);
-                var texY = (int)(w0 * t0[1] + w1 * t1[1] + w2 * t2[1]);
-                if (texX < 0) texX = 0;
-                if (texY < 0) texY = 0;
+                var tx = (int)(w0 * t0[0] + w1 * t1[0] + w2 * t2[0]);
+                var ty = (int)(w0 * t0[1] + w1 * t1[1] + w2 * t2[1]);
 
                 pixels[idx] = RenderUtils.transformColor(
-                    texturePx[texY * textureW + texX],
+                    texturePx[ty * textureW + tx],
                     triangle.intensity(),
                     pixels[idx]
                 );

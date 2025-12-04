@@ -12,30 +12,33 @@ import javax.imageio.ImageIO;
 
 /**
  * Image or portion of an image used to be paint over model faces.
- * @param name the name of this texture, only used for debug
- * @param source the image to use for this texture
- * @param pixels internal variable used for read source pixels faster
- * @param x the x coordinate of the top-left corner of the uv box
- * @param y the y coordinate of the top-left corner of the uv box
- * @param w the width of the uv box
- * @param h the height of the uv box
- * @param rotate the rotation of the texture (1 = 90° CW and so on)
- * @param isTransparent whether this texture has transparency.
- *     DO NOT SET THIS VALUE BY YOURSELF
  */
 public class Texture {
 
     /** Iterator over each default texture colorSet available */
     private static int nextColorSet = 0;
 
+    /** The name of this texture, only used for debug */
     public final String name;
+
+    /** The image to use for this texture */
     private final BufferedImage source;
     private final int sourceW;
     private final int sourceH;
+
+    /** Internal variable used for read source pixels faster */
     private final int[] pixels;
+
+    /** The x coordinate of the top-left corner of the uv box */
     private final int x;
+
+    /** The y coordinate of the top-left corner of the uv box */
     private final int y;
+
+    /** Precomputed rotation matrix */
     private final float[] rotate;
+
+    /** Whether this texture has transparency */
     private final boolean isTransparent;
 
     private Texture(
@@ -203,8 +206,6 @@ public class Texture {
     public int[] getRGBTexel(double u, double v) {
         var tx = (int)(rotate[0]*u + rotate[1]*v + rotate[2]);
         var ty = (int)(rotate[3]*u + rotate[4]*v + rotate[5]);
-        if (tx < 0) tx = 0; else if (tx >= sourceW) tx = sourceW - 1;
-        if (ty < 0) ty = 0; else if (ty >= sourceH) ty = sourceH - 1;
         return new int[] { tx, ty };
     }
 
@@ -330,10 +331,15 @@ public class Texture {
      * Lists of all different default colored textures.
      */
     public enum DefaultTexture {
+        /** The default green colored pattern */
         GREEN(new int[]{ 0x62cc82, 0x5abb78, 0x58b675, 0x50a66a }),
+        /** The default pink colored pattern */
         PINK( new int[]{ 0xcc84aa, 0xbb799c, 0xb67698, 0xa66c8b }),
+        /** The default red colored pattern */
         RED(  new int[]{ 0xcc7c79, 0xbb726f, 0xb66f6c, 0xa66562 }),
+        /** The default blue colored pattern */
         BLUE( new int[]{ 0x81bccc, 0x77acbb, 0x74a8b6, 0x6a99a6 }),
+        /** The default yellow colored pattern */
         GOLD( new int[]{ 0xccc67a, 0xbbb670, 0xb6b16d, 0xa6a264 });
 
         private final int[] colors;
