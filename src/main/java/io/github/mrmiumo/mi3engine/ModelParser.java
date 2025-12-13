@@ -205,9 +205,16 @@ public class ModelParser extends RenderTool {
         /* Rotation node */
         var rotation = element.get("rotation");
         if (rotation != null) {
-            var angle = rotation.get("angle").asDouble();
-            var axis = Axis.valueOf(rotation.get("axis").asText().toUpperCase());
-            cube.rotation(angle, axis);
+            var angle = rotation.get("angle");
+            if (angle != null) {
+                var axis = Axis.valueOf(rotation.get("axis").asText().toUpperCase());
+                cube.rotation(angle.asDouble(), axis);
+            } else {
+                var x = rotation.get("x").asDouble();
+                var y = rotation.get("y").asDouble();
+                var z = rotation.get("z").asDouble();
+                cube.rotation(new Vec(x, y, z));
+            }
 
             var origin = rotation.get("origin");
             if (origin != null) {

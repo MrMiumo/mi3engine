@@ -68,7 +68,7 @@ public final class RenderUtils {
      * @param color the color to blend with
      * @return the transformed argb
      */
-    static int transformColor(int argb, double intensity, int color) { // FIXME Hotspot
+    static int transformColor(int argb, double intensity, int color) {
         int a = (argb >>> 24); // Alpha
         int r = (argb >> 16) & 0xFF;  // Red
         int g = (argb >> 8) & 0xFF;   // Green
