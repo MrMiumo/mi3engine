@@ -149,11 +149,11 @@ public class AutoFramer extends RenderTool {
         var sx = size.x() / 2;
         var sy = size.y() / 2;
 
-        var zoom = engine.camera().getZoom();
         double cx =  box[0] + (box[2] - box[0]) / 2;
         double cy = box[1] + (box[3] - box[1]) / 2;
 
         /* Compute new center with the new zoom */
+        var zoom = engine.camera().getZoom();
         cx = cx + (cx - sx) * (zoom - 1);
         cy = cy + (cy - sy) * (zoom - 1);
         
@@ -162,7 +162,9 @@ public class AutoFramer extends RenderTool {
         var dx = sx - cx;
         var dy = sy - cy;
 
-        return new Vec(dx / 422 * invZoom, - dy / 422 * invZoom, 0);
+        var fx = 422 * size.x() / 1287;
+        var fy = 422 * size.y() / 1287;
+        return new Vec(dx / fx * invZoom, - dy / fy * invZoom, 0);
     }
 
     /**
