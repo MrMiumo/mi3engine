@@ -22,7 +22,7 @@ This engine is written in Java 17 (maybe compatible with Java 15 but not tested)
 <dependency>
     <groupId>io.github.mrmiumo</groupId>
     <artifactId>mi3engine</artifactId>
-    <version>1.1.1</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 Once imported in your project, you can use it by yourself (creating and adding cubes one by one) or using tools.
