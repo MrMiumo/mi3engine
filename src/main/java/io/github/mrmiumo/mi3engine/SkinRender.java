@@ -242,7 +242,7 @@ public class SkinRender extends RenderTool {
      * @return this skin engine
      */
     public SkinRender rightLeg(Vec rotation) {
-        return leg(true, rotation);
+        return leg(true, zxyToZyx(rotation));
     }
 
     /**
@@ -251,7 +251,7 @@ public class SkinRender extends RenderTool {
      * @return this skin engine
      */
     public SkinRender leftLeg(Vec rotation) {
-        return leg(false, rotation);
+        return leg(false, zxyToZyx(rotation));
     }
 
     /**
@@ -304,7 +304,7 @@ public class SkinRender extends RenderTool {
      * @return this skin engine
      */
     public SkinRender rightArm(Vec rotation, double bending) {
-        return createArm(new Vec(0, 8, 0), rotation, bending);
+        return createArm(new Vec(0, 8, 0), zxyToZyx(rotation), bending);
     }
 
     /**
@@ -315,7 +315,7 @@ public class SkinRender extends RenderTool {
      * @return this skin engine
      */
     public SkinRender leftArm(Vec rotation, double bending) {
-        return createArm(new Vec(8, 8, 0), rotation, bending);
+        return createArm(new Vec(8, 8, 0), zxyToZyx(rotation), bending);
     }
 
     /**
@@ -543,6 +543,46 @@ public class SkinRender extends RenderTool {
                 2, 1, // right
                 3, 1  // back
             };
+        }
+    }
+
+    /**
+     * Convert from ZXY rotation (used for arms) to XYZ (used by engine).
+     * @param zxy the rotation to convert
+     * @return the equivalent rotation using XYZ order.
+     */
+    private static Vec zxyToZyx(Vec zxy) {
+        double x = Math.toRadians(zxy.x());
+        double y = Math.toRadians(zxy.y());
+        double z = Math.toRadians(zxy.z());
+        final double cosX = Math.cos(x), sinX = Math.sin(x);
+        final double cosY = Math.cos(y), sinY = Math.sin(y);
+        final double cosZ = Math.cos(z), sinZ = Math.sin(z);
+
+        var m20 = -cosX * sinY;
+        if (Math.abs(m20) < 0.999999) {
+            var m00 = cosZ * cosY - sinZ * sinX * sinY;
+            var m10 = sinZ * cosY + cosZ * sinX * sinY;
+            var m21 = sinX;
+            var m22 = cosX * cosY;
+            return new Vec(
+                Math.toDegrees(Math.atan2(-m21, m22)),
+                Math.toDegrees(Math.asin(-m20)),
+                Math.toDegrees(Math.atan2(m10, m00))
+            );
+        } else {
+            /* Gimbal lock */
+            var m01 = -sinZ * cosX;
+            var m02 = cosZ * sinY + sinZ * sinX * cosY;
+            var m11 = cosZ * cosX;
+            var m12 = sinZ * sinY - cosZ * sinX * cosY;
+            if (m20 < 0) m12 = -m12;
+            else m02 = -m02;
+            return new Vec(
+                Math.toDegrees(0),
+                Math.toDegrees(Math.asin(-m20)),
+                Math.toDegrees(Math.atan2(m01 + m12, m11 + m02))
+            );
         }
     }
 
