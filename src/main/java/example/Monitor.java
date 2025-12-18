@@ -22,6 +22,10 @@ import io.github.mrmiumo.mi3engine.Vec;
  * manipulate the model in space.
  */
 public class Monitor {
+
+    /** No need to instantiate this class!! */
+    private Monitor() {}
+
     /**
      * Opens the monitor to view and manipulate object.
      * @param args unused
@@ -56,7 +60,7 @@ public class Monitor {
         } else if (t <= 45 + 158) {
             t -= 45;
             z = -45;
-            x = (2 * t) - 360;
+            x = 2 * t;
             y = 0;
         } else if (t <= 45 + 158 + 90) {
             t -= 45 + 158;
@@ -66,6 +70,9 @@ public class Monitor {
         }
 
         engine.rightArm(new Vec(x, y, z), 0);
+        engine.leftArm(new Vec(x, y, z), 0);
+        engine.rightLeg(new Vec(x, y, z));
+        engine.leftLeg(new Vec(x, y, z));
     }
 
     private static void benchModels(Path pack) throws IOException {

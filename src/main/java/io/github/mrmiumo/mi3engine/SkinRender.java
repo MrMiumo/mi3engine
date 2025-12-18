@@ -251,6 +251,7 @@ public class SkinRender extends RenderTool {
      * @return this skin engine
      */
     public SkinRender leftLeg(Vec rotation) {
+        rotation = rotation.mul(new Vec(1, -1, -1));
         return leg(false, zxyToZyx(rotation));
     }
 
@@ -265,6 +266,7 @@ public class SkinRender extends RenderTool {
         var from = new Vec(right ? 0 : 4, -12, 0);
         var to = new Vec(right ? 4 : 8, 0, 4);
         var i = right ? 0 : 2;
+        rotation = rotation.mul(new Vec(-1, 1, 1));
 
         /* Base layer */
         var tx = right ? 0 : 4;
@@ -315,6 +317,7 @@ public class SkinRender extends RenderTool {
      * @return this skin engine
      */
     public SkinRender leftArm(Vec rotation, double bending) {
+        rotation = rotation.mul(new Vec(1, -1, -1));
         return createArm(new Vec(8, 8, 0), zxyToZyx(rotation), bending);
     }
 

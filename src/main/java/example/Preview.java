@@ -27,6 +27,7 @@ import io.github.mrmiumo.mi3engine.RenderEngine;
 /**
  * Very basic monitor to visualize engine output in real time and
  * manipulate the model in space.
+ * @param <T> the type of Engine to preview
  */
 public class Preview<T extends RenderEngine> extends JFrame {
 
@@ -129,7 +130,7 @@ public class Preview<T extends RenderEngine> extends JFrame {
     /**
      * Saves the current preview frame at the given path under the
      * PNG format.
-     * @parma dst the path with the file name to save the preview at
+     * @param dst the path with the file name to save the preview at
      * @return this preview
      * @throws IOException in case of error while writing the file
      */
@@ -240,8 +241,20 @@ public class Preview<T extends RenderEngine> extends JFrame {
         }
     }
 
+    /**
+     * Functional interface to pass animation frame render methods.
+     * @param <T> the type of engine to animate
+     */
     @FunctionalInterface
     public interface Animation<T> {
+        /**
+         * Updates the given engine to edit the scene in order to
+         * prepare it for the next frame. The animation should rely on
+         * the given time to have fluent animations instead of relying
+         * on a separate frame counter.
+         * @param engine the engine used by the preview that will be updated
+         * @param time the animation frame time-code
+         */
         public void requestFrame(T engine, long time);
     }
 }
