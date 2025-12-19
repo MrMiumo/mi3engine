@@ -50,8 +50,8 @@ public class Texture {
         this.sourceW = source.getWidth();
         this.sourceH = source.getHeight();
         this.pixels = pixels;
-        this.x = (int)(w < 0 ? x - 1 : x);
-        this.y = (int)(h < 0 ? y - 1 : y);
+        this.x = (int)x;
+        this.y = (int)y;
         this.rotate = switch (rotate) {
             // u = [0]u + [1]v + [2]; v = [3]u + [4]v + [5]
             case 0 ->  new float[]{ 1*w,    0,      this.x,    0, -1*h,  1*h+this.y};
@@ -124,14 +124,6 @@ public class Texture {
      * @return the new texture with the given UV box and rotation
      */
     public Texture uv(float x, float y, float w, float h, int rotate) {
-        if (w < 0) {
-            w = -w;
-            x -= w;
-        }
-        if (h < 0) {
-            h = -h;
-            y -= h;
-        }
         /* Adapt uv from 16x16 to the real size */
         if (sourceW != 16 || sourceH != 16) {
             x = x * sourceW / 16f;
