@@ -34,9 +34,6 @@ public class SkinRender extends RenderTool {
     /** The skin texture */
     private final Texture skin;
 
-    /** The arm UV to handle regular and skim skins */
-    private final float[] marks;
-
     /** List of items to put in the player slots with their positions */
     private final EnumMap<Slot, ModelParser> equipments = new EnumMap<>(Slot.class);
 
@@ -55,12 +52,12 @@ public class SkinRender extends RenderTool {
      * - [10:15] RIGHT ARM second layer
      * - [16:21] LEFT ARM base layer
      * - [22:27] LEFT ARM second layer
-     * - [28] RIGHT LEG base layer
-     * - [29] RIGHT LEG second layer
-     * - [30] LEFT LEG base layer
-     * - [31] LEFT LEG second layer
+     * - [28:33] RIGHT LEG base layer
+     * - [34:39] RIGHT LEG second layer
+     * - [40:45] LEFT LEG base layer
+     * - [46:51] LEFT LEG second layer
      */
-    private final Element[] parts = new Element[32];
+    private final Element[] parts = new Element[52];
 
     /**
      * Creates a new engine based on the given skin. This is a tool to
@@ -76,7 +73,6 @@ public class SkinRender extends RenderTool {
         }
 
         this.skin = Texture.from(skin);
-        this.marks = getSkinMarks(this.skin);
         body();
     }
 
@@ -90,7 +86,6 @@ public class SkinRender extends RenderTool {
     public SkinRender(RenderEngine engine, BufferedImage skin) throws IOException {
         super(engine);
         this.skin = Texture.from(skin);
-        this.marks = getSkinMarks(this.skin);
         body();
     }
     
@@ -162,8 +157,8 @@ public class SkinRender extends RenderTool {
         if (parts[0]  == null) head(zero);
         if (parts[4]  == null) rightArm(zero, 0);
         if (parts[16] == null) leftArm(zero, 0);
-        if (parts[28] == null) rightLeg(zero);
-        if (parts[30] == null) leftLeg(zero);
+        if (parts[28] == null) rightLeg(zero, 0);
+        if (parts[40] == null) leftLeg(zero, 0);
     }
 
     /**
@@ -239,63 +234,22 @@ public class SkinRender extends RenderTool {
     /**
      * Rotate the right leg using the given angles.
      * @param rotation the rotation of the leg to set
+     * @param bending the angle of the leg bending (0 for a straight leg)
      * @return this skin engine
      */
-    public SkinRender rightLeg(Vec rotation) {
-        return leg(true, zxyToZyx(rotation));
+    public SkinRender rightLeg(Vec rotation, double bending) {
+        return addMember(Member.RIGHT_LEG, rotation, bending);
     }
 
     /**
      * Rotate the left leg using the given angles.
      * @param rotation the rotation of the leg to set
+     * @param bending the angle of the leg bending (0 for a straight leg)
      * @return this skin engine
      */
-    public SkinRender leftLeg(Vec rotation) {
+    public SkinRender leftLeg(Vec rotation, double bending) {
         rotation = rotation.mul(new Vec(1, -1, -1));
-        return leg(false, zxyToZyx(rotation));
-    }
-
-    /**
-     * Creates the elements needed to create a leg having the given
-     * rotation.
-     * @param true to create the left leg, false for the left one
-     * @param rotation the rotation of the leg to set
-     * @return this skin engine
-     */
-    private SkinRender leg(boolean right, Vec rotation) {
-        var from = new Vec(right ? 0 : 4, -12, 0);
-        var to = new Vec(right ? 4 : 8, 0, 4);
-        var i = right ? 0 : 2;
-        rotation = rotation.mul(new Vec(-1, 1, 1));
-
-        /* Base layer */
-        var tx = right ? 0 : 4;
-        var ty = right ? 4 : 12;
-        parts[28 + i] = Cube.from(from, to)
-            .pivot(right ? 2 : 6, 0, 2)
-            .rotation(rotation)
-            .texture(Face.UP,    skin, 0, tx + 1, ty + 0, tx + 2, ty + 1)
-            .texture(Face.DOWN,  skin, 2, tx + 3, ty + 0, tx + 2, ty + 1)
-            .texture(Face.WEST,  skin, 0, tx + 0, ty + 1, tx + 1, ty + 4)
-            .texture(Face.SOUTH, skin, 0, tx + 1, ty + 1, tx + 2, ty + 4)
-            .texture(Face.EAST,  skin, 0, tx + 2, ty + 1, tx + 3, ty + 4)
-            .texture(Face.NORTH, skin, 0, tx + 3, ty + 1, tx + 4, ty + 4)
-            .build();
-
-        /* Second layer */
-        ty = right ? 8 : 12;
-        parts[29 + i] = Cube.from(from.add(FROM_OFFSET), to.add(TO_OFFSET))
-            .pivot(right ? 2 : 6, 0, 2)
-            .rotation(rotation)
-            .texture(Face.UP,    skin, 0, 1, ty + 0, 2, ty + 1)
-            .texture(Face.DOWN,  skin, 2, 3, ty + 0, 2, ty + 1)
-            .texture(Face.WEST,  skin, 0, 0, ty + 1, 1, ty + 4)
-            .texture(Face.SOUTH, skin, 0, 1, ty + 1, 2, ty + 4)
-            .texture(Face.EAST,  skin, 0, 2, ty + 1, 3, ty + 4)
-            .texture(Face.NORTH, skin, 0, 3, ty + 1, 4, ty + 4)
-            .build();
-
-        return this;
+        return addMember(Member.LEFT_LEG, rotation, bending);
     }
 
     /**
@@ -306,7 +260,7 @@ public class SkinRender extends RenderTool {
      * @return this skin engine
      */
     public SkinRender rightArm(Vec rotation, double bending) {
-        return createArm(new Vec(0, 8, 0), zxyToZyx(rotation), bending);
+        return addMember(Member.RIGHT_ARM, rotation, bending);
     }
 
     /**
@@ -318,7 +272,7 @@ public class SkinRender extends RenderTool {
      */
     public SkinRender leftArm(Vec rotation, double bending) {
         rotation = rotation.mul(new Vec(1, -1, -1));
-        return createArm(new Vec(8, 8, 0), zxyToZyx(rotation), bending);
+        return addMember(Member.LEFT_ARM, rotation, bending);
     }
 
     /**
@@ -335,12 +289,12 @@ public class SkinRender extends RenderTool {
         return this;
     }
 
-    private SkinRender createArm(Vec pos, Vec rot, double angle) {
+    private SkinRender addMember(Member part, Vec rot, double angle) {
         angle /= 8;
 
-        var right = pos.x() == 0;
-        rot = new Vec(-rot.x(), rot.y(), rot.z());
-        Cube root = addShoulder(pos, rot, right);
+        if (part.leg()) rot = zxyToZyx(rot).add(0, 180, 0);
+        else rot = zxyToZyx(rot).mul(new Vec(-1, 1, 1));
+        Cube root = addShoulder(part, rot);
 
         var convert = RenderEngine.modelToWorld(root);
         var aRad = angle * (Math.PI / 180.0);
@@ -350,57 +304,52 @@ public class SkinRender extends RenderTool {
         var offset = new Vec(0, 0, 0);
         for (var i = 0 ; i < 4 ; i++) {
             var height = (30 - angle) / 30;
-            addSkinPart(root, convert, angle, right, a, b, i, offset, height);
+            addBendPart(root, convert, angle, part, a, b, i, offset, height);
 
             var oRad = angle * (i * 2 + 1) * (Math.PI / 180.0);
             offset = offset.add(0, Math.cos(oRad) * height, -Math.sin(oRad) * height);
         }
 
         /* Hand */
-        addHand(rot, angle, convert, offset, right);
-
+        addHand(rot, angle, convert, offset, part);
         return this;
     }
 
     /**
      * Creates, places and add UVS to the arm shoulder to the engine.
-     * @param pos the position of the whole arm
+     * @param part the part being build (used to save element + load UV)
      * @param rot the rotation of the whole arm
-     * @param right true to add right arm shoulder, false for the left arm
      * @return the element
      */
-    private Cube addShoulder(Vec pos, Vec rot, boolean right) {
-        var i = right ? 4 : 16;
-        var sizeX = marks[1] != 1 ? 3 : 4;
-        var position = right ? pos.add(-sizeX, 0, 0) : pos;
+    private Cube addShoulder(Member part, Vec rot) {
+        var sizeX = part.slim(skin) ? 3 : 4;
+        var position = part == Member.RIGHT_ARM ? part.pos.add(-sizeX, 0, 0) : part.pos;
         var size     = new Vec(sizeX, 4, 4);
-        var pivot    = pos.add(0, 4, 2);
+        var pivot    = part.pivot;
+        var rA = 0;
+        var rB = 1;
 
         /* Base layer */
-        var tx = right ? 10 : 8;
-        var ty = right ? 4 : 12;
         var root = new Cube.Builder(position, size)
             .pivot(pivot)
             .rotation(rot)
-            .texture(Face.UP,    skin.uv(marks[0] +tx, ty + 0, marks[1],  1, 3))
-            .texture(Face.WEST,  skin.uv(marks[4] +tx, ty + 1, marks[5],  1, 0))
-            .texture(Face.SOUTH, skin.uv(marks[6] +tx, ty + 1, marks[7],  1, 0))
-            .texture(Face.EAST,  skin.uv(marks[8] +tx, ty + 1, marks[9],  1, 1))
-            .texture(Face.NORTH, skin.uv(marks[10]+tx, ty + 1, marks[11], 1, 1))
+            .texture(Face.UP,    part.uvBase(Face.UP,    skin, 0, 1, 3, 1))
+            .texture(Face.WEST,  part.uvBase(Face.WEST,  skin, 1, 1, rA, rB))
+            .texture(Face.NORTH, part.uvBase(Face.SOUTH, skin, 1, 1, rA, rB))
+            .texture(Face.EAST,  part.uvBase(Face.EAST,  skin, 1, 1, rA, rB))
+            .texture(Face.SOUTH, part.uvBase(Face.NORTH, skin, 1, 1, rA, rB))
             .build();
-        parts[i] = root;
+        parts[part.base] = root;
 
         /* Second layer */
-        tx = right ? 10 : 12;
-        ty = right ? 8 : 12;
-        parts[i + 6] = new Cube.Builder(position.add(-OFFSET, 0, -OFFSET), size.add(TO_OFFSET).add(TO_OFFSET))
+        parts[part.layer] = new Cube.Builder(position.add(-OFFSET, 0, -OFFSET), size.add(TO_OFFSET).add(TO_OFFSET))
             .pivot(pivot)
             .rotation(rot)
-            .texture(Face.UP,    skin.uv(marks[0] +tx, ty + 0, marks[1],  1, 3))
-            .texture(Face.WEST,  skin.uv(marks[4] +tx, ty + 1, marks[5],  1, 0))
-            .texture(Face.SOUTH, skin.uv(marks[6] +tx, ty + 1, marks[7],  1, 0))
-            .texture(Face.EAST,  skin.uv(marks[8] +tx, ty + 1, marks[9],  1, 1))
-            .texture(Face.NORTH, skin.uv(marks[10]+tx, ty + 1, marks[11], 1, 1))
+            .texture(Face.UP,    part.uvLayer(Face.UP,    skin, 0, 1, 3, 1))
+            .texture(Face.WEST,  part.uvLayer(Face.WEST,  skin, 1, 1, rA, rB))
+            .texture(Face.NORTH, part.uvLayer(Face.SOUTH, skin, 1, 1, rA, rB))
+            .texture(Face.EAST,  part.uvLayer(Face.EAST,  skin, 1, 1, rA, rB))
+            .texture(Face.SOUTH, part.uvLayer(Face.NORTH, skin, 1, 1, rA, rB))
             .build();
 
         return root;
@@ -411,7 +360,7 @@ public class SkinRender extends RenderTool {
      * @param root the root cube of the arm
      * @param convert function to rotate the hand following the root angle
      * @param angle the bending of the arm in degrees
-     * @param right true to add right arm part, false for the left arm
+     * @param part the part being build (used to save element + load UV)
      * @param a the amount of tapper to set to fill the bent
      * @param b the size of the trapezoid back side to compensate for the tapper
      * @param i the index of this part (from 0 to 3)
@@ -419,55 +368,54 @@ public class SkinRender extends RenderTool {
      *     ones into account.
      * @param height the height of this part
      */
-    private void addSkinPart(
-        Cube root, Function<Vec, Vec> convert, double angle, boolean right,
+    private void addBendPart(
+        Cube root, Function<Vec, Vec> convert, double angle, Member part,
         double a, double b, int i, Vec offset, double height
     ) {
-        var slim = marks[1] != 1;
+        var slim = part.slim(skin);
         var partAngle = angle * (i * 2 + 1);
         var position = convert.apply(new Vec(0, 0, 4).sub(offset));
         var pivot = position;
         var rotation = root.rotation().add(180 - partAngle, 0, 0);
-        var u = right ? 5 : 17;
+        var rA = 3;
+        var rB = 2;
 
         /* Base layer */
-        float tx = right ? 10 : 8;
-        float ty = (right ? 6 : 14) + i * 0.25f;
-        parts[u + i] = new Trapezoid(
+        var y = 2 + i * 0.25f;
+        parts[part.base + 1 + i] = new Trapezoid(
             new Vec(slim ? 3 : 4, height, b), // size
             position,
             rotation,
             pivot,
             new Vec(0, a, 0), // taper
             new Texture[] {
-                skin.uv(marks[10]+tx, ty, marks[11], 0.25f, 2), // south
-                skin.uv(marks[6] +tx, ty, marks[7] , 0.25f, 3), // north
+                part.uvBase(Face.SOUTH, skin, y, .25f, rA, rB),
+                part.uvBase(Face.NORTH, skin, y, .25f, rA, rB),
                 null, null,
-                skin.uv(marks[8]+tx, ty, marks[9], 0.25f, 3), // west
-                skin.uv(marks[4]+tx, ty, marks[5], 0.25f, 2), // east
+                part.uvBase(Face.WEST,  skin, y, .25f, rA, rB),
+                part.uvBase(Face.EAST,  skin, y, .25f, rA, rB)
             }
         );
 
         /* Second layer */
-        tx = right ? 10 : 12;
-        ty = (right ? 10 : 14) + i * 0.25f;
+        y = 2 + i * 0.25f;
         position = convert.apply(new Vec(0, 0, 4).sub(offset).add(-OFFSET, 0, OFFSET));
         pivot = position;
         var aRad = angle * (Math.PI / 180.0);
         b = Math.cos(aRad) * (4 + 2*OFFSET);
         a = Math.tan(aRad) * b;
-        parts[u + i + 6] = new Trapezoid(
+        parts[part.layer + 1 + i] = new Trapezoid(
             new Vec(slim ? 3 : 4, height, b).add(2*OFFSET, 0, 0), // size
             position,
             rotation,
             pivot,
             new Vec(0, a, 0), // taper
             new Texture[]{
-                skin.uv(marks[10]+tx, ty, marks[11], 0.25f, 2), // south
-                skin.uv(marks[6] +tx, ty, marks[7] , 0.25f, 3), // north
+                part.uvLayer(Face.SOUTH, skin, y, .25f, rA, rB),
+                part.uvLayer(Face.NORTH, skin, y, .25f, rA, rB),
                 null, null,
-                skin.uv(marks[8]+tx, ty, marks[9], 0.25f, 3), // west
-                skin.uv(marks[4]+tx, ty, marks[5], 0.25f, 2), // east
+                part.uvLayer(Face.WEST,  skin, y, .25f, rA, rB),
+                part.uvLayer(Face.EAST,  skin, y, .25f, rA, rB)
             }
         );
     }
@@ -479,74 +427,41 @@ public class SkinRender extends RenderTool {
      * @param angle the bending of the arm in degrees
      * @param convert function to rotate the hand following the root angle
      * @param offset the offset of the position due to arm bending
-     * @param right true to add right arm part, false for the left arm
+     * @param part the part being build (used to save element + load UV)
      */
-    private void addHand(Vec rot, double angle, Function<Vec, Vec> convert, Vec offset, boolean right) {
-        var slim = marks[1] != 1;
+    private void addHand(Vec rot, double angle, Function<Vec, Vec> convert, Vec offset, Member part) {
+        var slim = part.slim(skin);
         var size = new Vec(slim ? 3 : 4, 4, 4);
         var partAngle = angle * (3.5 * 2 + 1);
         rot = rot.add(180 - partAngle, 0, 0);
         var position = convert.apply(new Vec(0, 0, 4).sub(offset));
         var pivot = position;
-        var i = right ? 9 : 21;
+        var rA = 2;
+        var rB = 3;
 
         /* Base layer */
-        var tx = right ? 10 : 8;
-        var ty = right ? 4 : 12;
-        parts[i] = new Cube.Builder(position, size)
+        parts[part.base + 5] = new Cube.Builder(position, size)
             .pivot(pivot)
             .rotation(rot)
-            .texture(Face.UP,  skin,2, marks[3] + marks[2] +tx, ty + 0, marks[2] +tx, ty+1)
-            .texture(Face.WEST,  skin.uv(marks[4] +tx, ty + 3, marks[5],  1, 2))
-            .texture(Face.NORTH, skin.uv(marks[6] +tx, ty + 3, marks[7],  1, 3))
-            .texture(Face.EAST,  skin.uv(marks[8] +tx, ty + 3, marks[9],  1, 3))
-            .texture(Face.SOUTH, skin.uv(marks[10]+tx, ty + 3, marks[11], 1, 2))
+            .texture(Face.UP,    part.uvBase(Face.DOWN,  skin, 0, 1,  1,  3))
+            .texture(Face.WEST,  part.uvBase(Face.WEST,  skin, 3, 1, rA, rB))
+            .texture(Face.NORTH, part.uvBase(Face.NORTH, skin, 3, 1, rB, rA))
+            .texture(Face.EAST,  part.uvBase(Face.EAST,  skin, 3, 1, rA, rB))
+            .texture(Face.SOUTH, part.uvBase(Face.SOUTH, skin, 3, 1, rB, rA))
             .build();
 
         /* Second layer */
-        tx = right ? 10 : 12;
-        ty = right ? 8 : 12;
         position = convert.apply(new Vec(0, 0, 4).sub(offset).add(-OFFSET, 0, OFFSET));
         pivot = position;
-        parts[i + 6] = new Cube.Builder(position, size.add(new Vec(2*OFFSET, OFFSET, 2*OFFSET)))
+        parts[part.layer + 5] = new Cube.Builder(position, size.add(new Vec(2*OFFSET, OFFSET, 2*OFFSET)))
             .pivot(pivot)
             .rotation(rot)
-            .texture(Face.UP,  skin,2, marks[3] + marks[2] +tx, ty + 0, marks[2] +tx, ty+1)
-            .texture(Face.WEST,  skin.uv(marks[4] +tx, ty + 3, marks[5],  1, 2))
-            .texture(Face.NORTH, skin.uv(marks[6] +tx, ty + 3, marks[7],  1, 3))
-            .texture(Face.EAST,  skin.uv(marks[8] +tx, ty + 3, marks[9],  1, 3))
-            .texture(Face.SOUTH, skin.uv(marks[10]+tx, ty + 3, marks[11], 1, 2))
+            .texture(Face.UP,    part.uvLayer(Face.DOWN,  skin, 0, 1,  1,  3))
+            .texture(Face.WEST,  part.uvLayer(Face.WEST,  skin, 3, 1, rA, rB))
+            .texture(Face.NORTH, part.uvLayer(Face.NORTH, skin, 3, 1, rB, rA))
+            .texture(Face.EAST,  part.uvLayer(Face.EAST,  skin, 3, 1, rA, rB))
+            .texture(Face.SOUTH, part.uvLayer(Face.SOUTH, skin, 3, 1, rB, rA))
             .build();
-    }
-
-    /**
-     * Computes the arms relative UVs depending on the size of the skin
-     * (slim or regular).
-     * @param skin the skin to compute marks for
-     * @return an array containing offset and size on the X axis for
-     *     the top, bottom, left, front, right and back faces.
-     */
-    private static float[] getSkinMarks(Texture skin) {
-        var slim = (skin.source().getRGB(55, 20) >>> 24) <= 10;
-        if (slim) {
-            return new float[]{
-                1,     .75f, // up
-                1.75f, .75f, // down
-                0,      1,   // left
-                1,     .75f, // front
-                1.75f,  1,   // right
-                2.75f, .75f  // back
-            };
-        } else {
-            return new float[]{
-                1, 1, // up
-                2, 1, // down
-                0, 1, // left
-                1, 1, // front
-                2, 1, // right
-                3, 1  // back
-            };
-        }
     }
 
     /**
@@ -586,6 +501,114 @@ public class SkinRender extends RenderTool {
                 Math.toDegrees(Math.asin(-m20)),
                 Math.toDegrees(Math.atan2(m01 + m12, m11 + m02))
             );
+        }
+    }
+
+    private enum Member {
+        RIGHT_ARM(new Vec(0,  8, 0), new Vec(0, 12, 2),     4, 10,    40, 16, 40, 32),
+        LEFT_ARM( new Vec(8,  8, 0), new Vec(8, 12, 2),    16, 22,    32, 48, 48, 48),
+        RIGHT_LEG(new Vec(0, -4, 0), new Vec(2, 0, 2),    28, 34,     0, 16,  0, 32),
+        LEFT_LEG( new Vec(4, -4, 0), new Vec(6, 0, 2),    40, 46,    16, 48,  0, 48);
+
+        public final Vec pos;
+        public final Vec pivot;
+        public final int base;
+        public final int layer;
+        private final float baseX;
+        private final float baseY;
+        private final float layerX;
+        private final float layerY;
+
+        Member(Vec pos, Vec pivot, int base, int layer, int baseX, int baseY, int layerX, int layerY) {
+            this.pos = pos;
+            this.pivot = pivot;
+            this.base = base;
+            this.layer = layer;
+            this.baseX = baseX / 4;
+            this.baseY = baseY / 4;
+            this.layerX = layerX / 4;
+            this.layerY = layerY / 4;
+        }
+
+        public boolean leg() {
+            return this == RIGHT_LEG || this == LEFT_LEG;
+        }
+        
+        public boolean slim(Texture skin) {
+            return !leg() && (skin.source().getRGB(55, 20) >>> 24) <= 10;
+        }
+        
+        /**
+         * @param x the x coordinate of the top-left corner of the uv box
+         * @param y the y coordinate of the top-left corner of the uv box
+         * @param w the width of the uv box
+         * @param h the height of the uv box
+         * @param rotate the rotation of the texture (1 = 90° and so on)
+         * @return the new texture with the given UV box and rotation
+         */
+        public Texture uvBase(Face face, Texture skin, float y, float h, int rA, int rB) {
+            return uv(face, skin, y, h, baseX, baseY, rA, rB);
+        }
+
+        public Texture uvLayer(Face face, Texture skin, float y, float h, int rA, int rB) {
+            return uv(face, skin, y, h, layerX, layerY, rA, rB);
+        }
+
+        private Texture uv(Face face, Texture skin, float y, float h, float tx, float ty, int rA, int rB) {
+            var leg = leg();
+            var slim = !leg && slim(skin);
+            var w = 1f;
+            var r = 0;
+
+            /* Switch layers for legs */
+            if (leg) {
+                face = switch (face) {
+                    case NORTH -> Face.SOUTH;
+                    case SOUTH -> Face.NORTH;
+                    case EAST -> Face.WEST;
+                    case WEST -> Face.EAST;
+                    default -> face;
+                };
+                var t = rA;
+                rA = rB;
+                rB = t;
+            }
+
+            /* UV setup */
+            switch (face) {
+                case UP -> {
+                    w = slim ? .75f : 1;
+                    tx += 1;
+                    r = rA;
+                }
+                case DOWN -> {
+                    w  =  -(slim ? .75f : 1);
+                    tx += slim ? 2.5f : 3;
+                    r = rA;
+                }
+                case WEST -> {  // Left
+                    w = 1;
+                    r = rA;
+                }
+                case NORTH -> {  // Front
+                    tx += 1;
+                    w = slim ? .75f : 1;
+                    r = rA;
+                }
+                case EAST -> {  // Right
+                    tx += slim ? 1.75f : 2;
+                    w = 1;
+                    r = rB;
+                }
+                case SOUTH -> {  // Back
+                    tx += slim ? 2.75f : 3;
+                    w  =  slim ? .75f : 1;
+                    r = rB;
+                }
+            };
+
+            /* Texture creation */
+            return skin.uv(tx, ty + y, w,  h, r);
         }
     }
 
