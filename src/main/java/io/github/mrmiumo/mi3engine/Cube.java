@@ -118,14 +118,10 @@ public record Cube(Vec size, Vec position, Vec rotation, Vec pivot, EnumMap<Face
             var dx = to.x() - from.x();
             var dy = to.y() - from.y();
             var dz = to.z() - from.z();
-
-            if (dx < 0) { x += dx; }
-            if (dy < 0) { y += dy; }
-            if (dz < 0) { z += dz; }
             
             return new Builder(
                 new Vec(x, y, z),
-                new Vec(Math.abs(dx), Math.abs(dy), Math.abs(dz))
+                new Vec(dx, dy, dz)
             );
         }
 
