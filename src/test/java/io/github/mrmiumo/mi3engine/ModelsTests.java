@@ -9,11 +9,22 @@ import org.junit.jupiter.api.Test;
 public class ModelsTests {
 
     /**
+     * Make sure that the a cube with negative size (X, Y or Z) have
+     * its inner faces rendered.
+     */
+    @Test
+    public void testCubeInverted() throws IOException {
+        var engine = getEngine("cubeInverted.json");
+        engine.camera().setRotation(25, 35, 0);
+        assertRenderFramed(engine);
+    }
+
+    /**
      * Make sure that the hat follows correctly head movements.
      */
     @Test
-    public void testInverted() throws IOException {
-        var engine = getEngine("cubeInverted.json");
+    public void testCubeCross() throws IOException {
+        var engine = getEngine("cubeCross.json");
         engine.camera().setRotation(25, 35, 0);
         assertRenderFramed(engine);
     }

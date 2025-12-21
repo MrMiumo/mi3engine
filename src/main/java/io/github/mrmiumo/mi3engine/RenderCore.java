@@ -219,8 +219,10 @@ class RenderCore implements RenderEngine {
                 var tx = (int)(w0 * t0[0] + w1 * t1[0] + w2 * t2[0]);
                 var ty = (int)(w0 * t0[1] + w1 * t1[1] + w2 * t2[1]);
 
+                var argb = texturePx[ty * textureW + tx];
+                if ((argb >>> 24) == 0) continue;
                 pixels[idx] = RenderUtils.transformColor(
-                    texturePx[ty * textureW + tx],
+                    argb,
                     triangle.intensity(),
                     pixels[idx]
                 );
