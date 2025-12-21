@@ -1,0 +1,30 @@
+{
+	"format_version": "1.9.0",
+	"textures": {
+		"0": "dirt"
+	},
+	"elements": [
+		{
+			"from": [6, 4, 9],
+			"to": [10, 8, 11],
+			"rotation": {"angle": 0, "axis": "y", "origin": [0, 2, 3]},
+			"faces": {
+				"east": {"uv": [0, 4, 16, 12], "rotation": 270, "texture": "#0"},
+				"west": {"uv": [0, 6, 16, 14], "rotation": 90, "texture": "#0"},
+				"up": {"uv": [0, 8, 16, 16], "texture": "#0"},
+				"down": {"uv": [0, 2, 16, 10], "texture": "#0"}
+			}
+		},
+		{
+			"from": [6, 8, 9],
+			"to": [10, 4, 11],
+			"rotation": {"angle": 0, "axis": "y", "origin": [0, 6, 3]},
+			"faces": {
+				"east": {"uv": [0, 4, 16, 12], "rotation": 270, "texture": "#0"},
+				"west": {"uv": [0, 6, 16, 14], "rotation": 90, "texture": "#0"},
+				"up": {"uv": [0, 8, 16, 16], "texture": "#0"},
+				"down": {"uv": [0, 2, 16, 10], "texture": "#0"}
+			}
+		}
+	]
+}
