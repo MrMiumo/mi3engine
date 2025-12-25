@@ -92,6 +92,20 @@ public interface RenderEngine {
     public List<Element> getElements();
     
     /**
+     * Sets hint to render or not backside of element faces. This mode
+     * is useful when rendering skin for example.
+     * @param doubleSided whether to render both sides of each face or not
+     * @return this engine
+     */
+    public RenderEngine setDoubleSided(boolean doubleSided);
+
+    /**
+     * Whether this engine will render both sides of each face or not
+     * @return true if this engine render both sides, false otherwise
+     */
+    public boolean isDoubleSided();
+
+    /**
      * Gets the size of the output image currently setup
      * @return the width and height of the output image
      */

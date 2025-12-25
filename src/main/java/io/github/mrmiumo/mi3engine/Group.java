@@ -227,6 +227,16 @@ public class Group implements Element {
         }
 
         @Override
+        public RenderEngine setDoubleSided(boolean doubleSided) {
+            return this;
+        }
+
+        @Override
+        public boolean isDoubleSided() {
+            return false;
+        }
+
+        @Override
         public Vec2 size() {
             return new Vec2(0, 0);
         }

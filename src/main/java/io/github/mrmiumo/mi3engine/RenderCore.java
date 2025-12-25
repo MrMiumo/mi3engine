@@ -32,6 +32,9 @@ class RenderCore implements RenderEngine {
     /** The camera settings */
     private Camera config = new Camera();
 
+    /** Whether to render both sides of each face or not */
+    private boolean doubleSided = false;
+
     /** The width of the image to generate */
     private final int width;
 
@@ -102,6 +105,17 @@ class RenderCore implements RenderEngine {
     }
 
     @Override
+    public RenderEngine setDoubleSided(boolean doubleSided) {
+        this.doubleSided = doubleSided;
+        return this;
+    }
+
+    @Override
+    public boolean isDoubleSided() {
+        return doubleSided;
+    }
+
+    @Override
     public Vec2 size() {
         return new Vec2(width, height);
     }
@@ -144,7 +158,7 @@ class RenderCore implements RenderEngine {
                 }
                 
                 for (int[] points : TRIANGLES) {
-                    var triangle = Triangle.from(config, screenVerts, worldVerts, depthVals, points, tex);
+                    var triangle = Triangle.from(config, screenVerts, worldVerts, depthVals, points, tex, doubleSided);
                     if (triangle == null) continue;
                     if (triangle.opaque()) trianglesOpaque.add(triangle);
                     else trianglesTransparent.add(triangle);
@@ -153,14 +167,14 @@ class RenderCore implements RenderEngine {
         }
 
         /* Render opaque triangles first */
-        for (Triangle T : trianglesOpaque) {
-            renderTriangle(T);
+        for (Triangle t : trianglesOpaque) {
+            renderTriangle(t);
         }
 
         /* Render transparent triangles back-to-front */
         trianglesTransparent.sort(Comparator.comparingDouble(t -> t.avgDepth()));
-        for (Triangle T : trianglesTransparent) {
-            renderTriangle(T);
+        for (Triangle t : trianglesTransparent) {
+            renderTriangle(t);
         }
 
         return out;
@@ -200,13 +214,13 @@ class RenderCore implements RenderEngine {
 
             for (int px = minX ; px <= maxX ; px++) {
                 double sx = px + 0.5;
-                // compute barycentric numerators
+                // compute barycentric numerators (break if not all negative or all positive)
                 double w0 = edgeFunction(v1, v2, sx, sy);
-                if (w0 < 0) continue;
+                var bary0 = w0 < 0;
                 double w1 = edgeFunction(v2, v0, sx, sy);
-                if (w1 < 0) continue;
+                if (bary0 != w1 < 0) continue;
                 double w2 = edgeFunction(v0, v1, sx, sy);
-                if (w2 < 0) continue;
+                if (bary0 != w2 < 0) continue;
                 w0 /= area;
                 w1 /= area;
                 w2 /= area;

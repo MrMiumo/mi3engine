@@ -68,6 +68,7 @@ public class SkinRender extends RenderTool {
      */
     public SkinRender(RenderEngine engine, Path skin) throws IOException {
         super(engine);
+        engine.setDoubleSided(true);
         if (!Files.isRegularFile(skin)) {
             throw new IllegalArgumentException("The skin must be a regular file");
         }
@@ -85,6 +86,7 @@ public class SkinRender extends RenderTool {
      */
     public SkinRender(RenderEngine engine, BufferedImage skin) throws IOException {
         super(engine);
+        engine.setDoubleSided(true);
         this.skin = Texture.from(skin);
         body();
     }

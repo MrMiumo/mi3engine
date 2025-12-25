@@ -56,6 +56,16 @@ class RenderTool implements RenderEngine {
     }
 
     @Override
+    public RenderEngine setDoubleSided(boolean doubleSided) {
+        return engine.setDoubleSided(doubleSided);
+    }
+
+    @Override
+    public boolean isDoubleSided() {
+        return engine.isDoubleSided();
+    }
+
+    @Override
     public Vec2 size() {
         return engine.size();
     }

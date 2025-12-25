@@ -65,6 +65,7 @@ public class Preview<T extends RenderEngine> extends JFrame {
         var height = (int)engine.size().y();
         engineHQ = engine;
         engineFast = RenderEngine.from(width / 2, height / 2).addElements(engineHQ.getElements());
+        engineFast.setDoubleSided(engine.isDoubleSided());
         engineFast.setCamera(engineHQ.camera());
         engineHQ.camera()
             .setZoom(0.32);

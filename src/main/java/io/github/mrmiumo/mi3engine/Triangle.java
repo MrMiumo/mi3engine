@@ -25,9 +25,11 @@ public record Triangle(TriVertex a, TriVertex b, TriVertex c, Texture texture, d
      * @param depths the list of depths
      * @param points the points of the triangle to use
      * @param texture the texture to apply
+     * @param doubleSided true if both faces of the triangle can be rendered,
+     *     false to ignore the triangle if its is not facing the camera
      * @return the triangle
      */
-    public static Triangle from(Camera cam, Vec2[] screenVerts, Vec[] worldVerts, double[] depths, int[] points, Texture texture) {
+    public static Triangle from(Camera cam, Vec2[] screenVerts, Vec[] worldVerts, double[] depths, int[] points, Texture texture, boolean doubleSided) {
         var a = TriVertex.from(screenVerts, depths, points[0]);
         var b = TriVertex.from(screenVerts, depths, points[1]);
         var c = TriVertex.from(screenVerts, depths, points[2]);
@@ -36,7 +38,7 @@ public record Triangle(TriVertex a, TriVertex b, TriVertex c, Texture texture, d
         Vec worldB = worldVerts[points[1]];
         Vec worldC = worldVerts[points[2]];
         var normal = getNormal(worldA, worldB, worldC).rotate(cam.rotation());
-        if (normal.z() > 0) return null;
+        if (!doubleSided && normal.z() > 0) return null;
 
         return new Triangle(
             a, b, c,
@@ -56,6 +58,7 @@ public record Triangle(TriVertex a, TriVertex b, TriVertex c, Texture texture, d
      */
     private static double computeIntensity(Camera cam, Vec normal) {
         /* Computes the light from the normal */
+        if (normal.z() > 0) normal = normal.mul(-1);
         var spot = cam.spotDirection();
         double diffuseFactor = normal.dot(new Vec(spot.x(), spot.y(), spot.z()));
         double clampedDiffuseFactor = Math.max(0, diffuseFactor);
