@@ -300,20 +300,29 @@ public class SkinRender extends RenderTool {
 
         var convert = RenderEngine.modelToWorld(root);
         var aRad = angle * (Math.PI / 180.0);
-        var b = Math.cos(aRad) * 4;
-        var a = Math.tan(aRad) * b;
+        var baseB = Math.cos(aRad) * 4;
+        var baseA = Math.tan(aRad) * baseB;
+        var layerB = Math.cos(aRad) * (4 + 2*OFFSET);
+        var layerA = Math.tan(aRad) * layerB;
 
-        var offset = new Vec(0, 0, 0);
+        var baseOffset = new Vec(0, 0, 0);
+        var layerOffset = new Vec(0, 0, 0);
         for (var i = 0 ; i < 4 ; i++) {
-            var height = (30 - angle) / 30;
-            addBendPart(root, convert, angle, part, a, b, i, offset, height);
+            var baseHeight = (30 - angle) / 30;
+            var layerHeight = baseHeight - 2 * (OFFSET * layerA / layerB);
+            addBendPart(
+                root, convert, angle, part, i,
+                baseA, baseB, baseOffset, baseHeight,
+                layerA, layerB, layerOffset, layerHeight
+            );
 
             var oRad = angle * (i * 2 + 1) * (Math.PI / 180.0);
-            offset = offset.add(0, Math.cos(oRad) * height, -Math.sin(oRad) * height);
+            baseOffset = baseOffset.add(0, Math.cos(oRad) * baseHeight, -Math.sin(oRad) * baseHeight);
+            layerOffset = layerOffset.add(0, Math.cos(oRad) * layerHeight, -Math.sin(oRad) * layerHeight);
         }
 
         /* Hand */
-        addHand(rot, angle, convert, offset, part);
+        addHand(rot, angle, convert, baseOffset, layerOffset, part);
         return this;
     }
 
@@ -363,20 +372,25 @@ public class SkinRender extends RenderTool {
      * @param convert function to rotate the hand following the root angle
      * @param angle the bending of the arm in degrees
      * @param part the part being build (used to save element + load UV)
-     * @param a the amount of tapper to set to fill the bent
-     * @param b the size of the trapezoid back side to compensate for the tapper
      * @param i the index of this part (from 0 to 3)
-     * @param offset the offset to position this part, taking previous
-     *     ones into account.
-     * @param height the height of this part
+     * @param baseA the amount of tapper to set to fill the bent
+     * @param baseB the size of the trapezoid back side to compensate for the tapper
+     * @param baseOffset the offset to position this part, taking previous
+     *     ones into account (base offset)
+     * @param baseHeight the height of this part
+     * @param layerA the amount of tapper for the layer
+     * @param layerB the size of the trapezoid back side for the layer
+     * @param layerOffset variant of the offset computed for the layer
+     * @param layerHeight variant of the height computed for the layer
      */
     private void addBendPart(
-        Cube root, Function<Vec, Vec> convert, double angle, Member part,
-        double a, double b, int i, Vec offset, double height
+        Cube root, Function<Vec, Vec> convert, double angle, Member part, int i,
+        double baseA, double baseB, Vec baseOffset, double baseHeight,
+        double layerA, double layerB, Vec layerOffset, double layerHeight
     ) {
         var slim = part.slim(skin);
         var partAngle = angle * (i * 2 + 1);
-        var position = convert.apply(new Vec(0, 0, 4).sub(offset));
+        var position = convert.apply(new Vec(0, 0, 4).sub(baseOffset));
         var pivot = position;
         var rotation = root.rotation().add(180 - partAngle, 0, 0);
         var rA = 3;
@@ -385,11 +399,11 @@ public class SkinRender extends RenderTool {
         /* Base layer */
         var y = 2 + i * 0.25f;
         parts[part.base + 1 + i] = new Trapezoid(
-            new Vec(slim ? 3 : 4, height, b), // size
+            new Vec(slim ? 3 : 4, baseHeight, baseB), // size
             position,
             rotation,
             pivot,
-            new Vec(0, a, 0), // taper
+            new Vec(0, baseA, 0), // taper
             new Texture[] {
                 part.uvBase(Face.SOUTH, skin, y, .25f, rA, rB),
                 part.uvBase(Face.NORTH, skin, y, .25f, rA, rB),
@@ -401,17 +415,14 @@ public class SkinRender extends RenderTool {
 
         /* Second layer */
         y = 2 + i * 0.25f;
-        position = convert.apply(new Vec(0, 0, 4).sub(offset).add(-OFFSET, 0, OFFSET));
+        position = convert.apply(new Vec(0, 0, 4).sub(layerOffset).add(-OFFSET, 0, OFFSET));
         pivot = position;
-        var aRad = angle * (Math.PI / 180.0);
-        b = Math.cos(aRad) * (4 + 2*OFFSET);
-        a = Math.tan(aRad) * b;
         parts[part.layer + 1 + i] = new Trapezoid(
-            new Vec(slim ? 3 : 4, height, b).add(2*OFFSET, 0, 0), // size
+            new Vec(slim ? 3 : 4, layerHeight, layerB).add(2*OFFSET, 0, 0), // size
             position,
             rotation,
             pivot,
-            new Vec(0, a, 0), // taper
+            new Vec(0, layerA, 0), // taper
             new Texture[]{
                 part.uvLayer(Face.SOUTH, skin, y, .25f, rA, rB),
                 part.uvLayer(Face.NORTH, skin, y, .25f, rA, rB),
@@ -429,9 +440,10 @@ public class SkinRender extends RenderTool {
      * @param angle the bending of the arm in degrees
      * @param convert function to rotate the hand following the root angle
      * @param offset the offset of the position due to arm bending
+     * @param layerOffset the offset of the position due to arm bending for the layer
      * @param part the part being build (used to save element + load UV)
      */
-    private void addHand(Vec rot, double angle, Function<Vec, Vec> convert, Vec offset, Member part) {
+    private void addHand(Vec rot, double angle, Function<Vec, Vec> convert, Vec offset, Vec layerOffset, Member part) {
         var slim = part.slim(skin);
         var size = new Vec(slim ? 3 : 4, 4, 4);
         var partAngle = angle * (3.5 * 2 + 1);
@@ -453,7 +465,7 @@ public class SkinRender extends RenderTool {
             .build();
 
         /* Second layer */
-        position = convert.apply(new Vec(0, 0, 4).sub(offset).add(-OFFSET, 0, OFFSET));
+        position = convert.apply(new Vec(0, 0, 4).sub(layerOffset).add(-OFFSET, 0, OFFSET));
         pivot = position;
         parts[part.layer + 5] = new Cube.Builder(position, size.add(new Vec(2*OFFSET, OFFSET, 2*OFFSET)))
             .pivot(pivot)
