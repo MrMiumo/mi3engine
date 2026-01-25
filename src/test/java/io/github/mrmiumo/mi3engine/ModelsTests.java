@@ -1,6 +1,7 @@
 package io.github.mrmiumo.mi3engine;
 
 import static io.github.mrmiumo.mi3engine.TestsUtils.assertRenderFramed;
+import static io.github.mrmiumo.mi3engine.TestsUtils.generateReferenceFramed;
 
 import java.io.IOException;
 
@@ -26,6 +27,17 @@ public class ModelsTests {
     public void testCubeCross() throws IOException {
         var engine = getEngine("cubeCross.json");
         engine.camera().setRotation(25, 35, 0);
+        assertRenderFramed(engine);
+    }
+
+    /**
+     * Make sure that models inherited from "item/generated" are
+     * correctly rendered.
+     */
+    @Test
+    public void testItemGenerated() throws IOException {
+        var engine = getEngine("itemGenerated.json");
+        engine.camera().setRotation(25,35, 0);
         assertRenderFramed(engine);
     }
 

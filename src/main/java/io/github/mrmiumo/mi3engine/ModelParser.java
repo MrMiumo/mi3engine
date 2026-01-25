@@ -356,13 +356,15 @@ public class ModelParser extends RenderTool {
         var u = 16f / width;
         var v = 16f / height;
 
-        var cube = Cube.from(new Vec(x, - y, 0), new Vec(x + w, -y - h, depth))
-            .texture(Face.NORTH, texture, 0, (x + w) * u, y * v, x * u, (y + h) * v)
-            .texture(Face.EAST,  texture, 0, (x + w - 1) * u, y * v, (x + w) * u, (y + h) * v)
-            .texture(Face.DOWN,  texture, 0, x * u, (y + h) * v, (x + w) * u, (y + h - 1) * v)
-            .texture(Face.SOUTH, texture, 0, x * u, y * v, (x + w) * u, (y + h) * v)
-            .texture(Face.WEST,  texture, 0, x * u, y * v, (x + 1) * u, (y + h) * v)
-            .texture(Face.UP,    texture, 0, x * u, y * v, (x + w) * u, (y + 1) * v);
+        var cube = Cube.from(new Vec(x, - y, 0), new Vec(x + w, -y - h, -depth))
+            .texture(Texture.generateDefault())
+            .texture(Face.NORTH, texture, 0, (x + w) * u, (y + h) * v, x * u, y * v)
+            .texture(Face.EAST,  texture, 0, (x + w - 1) * u, (y + h) * v, (x + w) * u, y * v)
+            .texture(Face.UP,  texture, 0, x * u, (y + h) * v, (x + w) * u, (y + h - 1) * v)
+            .texture(Face.SOUTH, texture, 0, x * u, (y + h) * v, (x + w) * u, y * v)
+            .texture(Face.WEST,  texture, 0, x * u, (y + h) * v, (x + 1) * u, y * v)
+            .texture(Face.DOWN,    texture, 0, x * u, y * v, (x + w) * u, (y + 1) * v);
+            ;
         return cube.build();
     }
 
