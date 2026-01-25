@@ -29,6 +29,16 @@ public class ModelsTests {
         assertRenderFramed(engine);
     }
 
+    /**
+     * Test on a real life model that was having textures UV issues.
+     */
+    @Test
+    public void testBin() throws IOException {
+        var engine = getEngine("bin.json");
+        engine.camera().setRotation(25,-55, 0);
+        assertRenderFramed(engine);
+    }
+
     private static ModelParser getEngine(String model) throws IOException {
         return new ModelParser(RenderEngine.from(1287, 1287))
             .parse(TestsUtils.PACK.resolve("models/" + model));

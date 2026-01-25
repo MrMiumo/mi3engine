@@ -121,7 +121,7 @@ public class ModelParser extends RenderTool {
         if (json == null) return;
         json.properties().stream()
             .forEach(p -> {
-                var value = p.getValue().asText();
+                var value = p.getValue().asText().replace("minecraft:", "");
                 Function<String, TextureHolder> mapper;
                 if (value.startsWith("#")) {
                     mapper = k -> new TextureHolder(value);

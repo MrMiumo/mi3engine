@@ -29,12 +29,6 @@ public class Texture {
     /** Internal variable used for read source pixels faster */
     private final int[] pixels;
 
-    /** The x coordinate of the top-left corner of the uv box */
-    private final int x;
-
-    /** The y coordinate of the top-left corner of the uv box */
-    private final int y;
-
     /** Precomputed rotation matrix */
     private final float[] rotate;
 
@@ -50,14 +44,12 @@ public class Texture {
         this.sourceW = source.getWidth();
         this.sourceH = source.getHeight();
         this.pixels = pixels;
-        this.x = (int)x;
-        this.y = (int)y;
         this.rotate = switch (rotate) {
             // u = [0]u + [1]v + [2]; v = [3]u + [4]v + [5]
-            case 0 ->  new float[]{ 1*w,    0,      this.x,    0, -1*h,  1*h+this.y};
-            case 1 ->  new float[]{   0, -1*w,  1*w+this.x, -1*h,    0,  1*h+this.y};
-            case 2 ->  new float[]{-1*w,    0,  1*w+this.x,    0,  1*h,      this.y};
-            default -> new float[]{   0,  1*w,      this.x,  1*h,    0,      this.y};
+            case 0 ->  new float[]{ 1*w,    0,      x,    0, -1*h,  1*h+y};
+            case 1 ->  new float[]{   0, -1*w,  1*w+x, -1*h,    0,  1*h+y};
+            case 2 ->  new float[]{-1*w,    0,  1*w+x,    0,  1*h,      y};
+            default -> new float[]{   0,  1*w,      x,  1*h,    0,      y};
         };
         this.isTransparent = isTransparent;
     }
@@ -195,10 +187,10 @@ public class Texture {
      * @param v the position of the pixel to get on the vertical axis
      * @return the ARGB code of the pixel
      */
-    public int[] getRGBTexel(double u, double v) {
-        var tx = (int)(rotate[0]*u + rotate[1]*v + rotate[2]);
-        var ty = (int)(rotate[3]*u + rotate[4]*v + rotate[5]);
-        return new int[] { tx, ty };
+    public float[] getRGBTexel(double u, double v) {
+        var tx = (float)(rotate[0]*u + rotate[1]*v + rotate[2]);
+        var ty = (float)(rotate[3]*u + rotate[4]*v + rotate[5]);
+        return new float[] { tx, ty };
     }
 
     /**
