@@ -1,7 +1,6 @@
 package io.github.mrmiumo.mi3engine;
 
 import static io.github.mrmiumo.mi3engine.TestsUtils.assertRenderFramed;
-import static io.github.mrmiumo.mi3engine.TestsUtils.generateReferenceFramed;
 
 import java.io.IOException;
 

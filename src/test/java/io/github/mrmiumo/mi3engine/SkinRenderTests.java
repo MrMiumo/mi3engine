@@ -12,6 +12,34 @@ import io.github.mrmiumo.mi3engine.SkinRender.Slot;
 public class SkinRenderTests {
 
     /**
+     * Make sure that the main skin rendering position and UV are OK
+     */
+    @Test
+    public void testClassic() throws IOException {
+        var engine = getEngine("textures/debugSkin.png")
+            .head(new Vec(-25, 15, 5))
+            .rightArm(new Vec(-8, 0, -8), 0)
+            .leftArm(new Vec(8, 0, -8), 0)
+            .rightLeg(new Vec(-8, 0, 0), 0)
+            .leftLeg(new Vec(8, 0, 0), 0);
+        assertRenderFramed(engine);
+    }
+
+    /**
+     * Make sure that the main skin rendering position and UV are OK
+     */
+    @Test
+    public void testSlim() throws IOException {
+        var engine = getEngine("textures/debugSlim.png")
+            .head(new Vec(-25, 15, 5))
+            .rightArm(new Vec(-8, 0, -8), 0)
+            .leftArm(new Vec(8, 0, -8), 0)
+            .rightLeg(new Vec(-8, 0, 0), 0)
+            .leftLeg(new Vec(8, 0, 0), 0);
+        assertRenderFramed(engine);
+    }
+
+    /**
      * Make sure that the hat follows correctly head movements.
      */
     @Test
@@ -82,7 +110,11 @@ public class SkinRenderTests {
     }
 
     private static SkinRender getEngine() throws IOException {
-        var skin = TestsUtils.PACK.resolve("textures/skinHead.png");
+        return getEngine("textures/skinHead.png");
+    }
+
+    private static SkinRender getEngine(String texture) throws IOException {
+        var skin = TestsUtils.PACK.resolve(texture);
         var engine = new SkinRender(RenderEngine.from(1287, 1287), skin);
         engine.camera()
             .setAmbientLight(0.35f)

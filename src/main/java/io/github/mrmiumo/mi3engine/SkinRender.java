@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.function.Function;
@@ -44,20 +45,15 @@ public class SkinRender extends RenderTool {
      * Array containing all skin elements (mutable) that enable to
      * modify some skin parts without recomputing all the elements.
      * Organization:
-     * - [0] HEAD base layer
-     * - [1] HEAD second layer
-     * - [2] BODY base layer
-     * - [3] BODY second layer
-     * - [4 : 9] RIGHT ARM base layer
-     * - [10:15] RIGHT ARM second layer
-     * - [16:21] LEFT ARM base layer
-     * - [22:27] LEFT ARM second layer
-     * - [28:33] RIGHT LEG base layer
-     * - [34:39] RIGHT LEG second layer
-     * - [40:45] LEFT LEG base layer
-     * - [46:51] LEFT LEG second layer
+     * - [0] HEAD
+     * - [1] BODY
+     * - [2] RIGHT ARM
+     * - [3] LEFT ARM
+     * - [4] RIGHT LEG
+     * - [5] LEFT LEG
      */
-    private final Element[] parts = new Element[52];
+    @SuppressWarnings("unchecked")
+    private final ArrayList<Element>[] parts = new ArrayList[6];
 
     /**
      * Creates a new engine based on the given skin. This is a tool to
@@ -71,6 +67,9 @@ public class SkinRender extends RenderTool {
         engine.setDoubleSided(true);
         if (!Files.isRegularFile(skin)) {
             throw new IllegalArgumentException("The skin must be a regular file");
+        }
+        for (var i = 0 ; i < parts.length ; i++) {
+            parts[i] = new ArrayList<Element>();
         }
 
         this.skin = Texture.from(skin);
@@ -88,6 +87,9 @@ public class SkinRender extends RenderTool {
         super(engine);
         engine.setDoubleSided(true);
         this.skin = Texture.from(skin);
+        for (var i = 0 ; i < parts.length ; i++) {
+            parts[i] = new ArrayList<Element>();
+        }
         body();
     }
     
@@ -108,7 +110,7 @@ public class SkinRender extends RenderTool {
         lazyInit();
         for (var part : parts) {
             if (part == null) continue;
-            engine.addElement(part);
+            engine.addElements(part);
         }
         for (var equipment : equipments.entrySet()) {
             var slotDisplay = slotsDisplay.get(equipment.getKey());
@@ -156,11 +158,11 @@ public class SkinRender extends RenderTool {
      */
     private void lazyInit() {
         final var zero = new Vec(0, 0, 0);
-        if (parts[0]  == null) head(zero);
-        if (parts[4]  == null) rightArm(zero, 0);
-        if (parts[16] == null) leftArm(zero, 0);
-        if (parts[28] == null) rightLeg(zero, 0);
-        if (parts[40] == null) leftLeg(zero, 0);
+        if (parts[0] == null) head(zero);
+        if (parts[2] == null) rightArm(zero, 0);
+        if (parts[3] == null) leftArm(zero, 0);
+        if (parts[4] == null) rightLeg(zero, 0);
+        if (parts[5] == null) leftLeg(zero, 0);
     }
 
     /**
@@ -172,9 +174,10 @@ public class SkinRender extends RenderTool {
         var pivot = new Vec(4, 12, 2);
         var from = new Vec(0, 12, -2);
         var to = new Vec(8, 20, 6);
+        parts[0].clear();
 
         /* Base layer */
-        parts[0] = Cube.from(from, to)
+        parts[0].add(Cube.from(from, to)
             .pivot(pivot)
             .rotation(rotation)
             .texture(Face.UP,    skin, 0, 2, 0, 4, 2)
@@ -183,10 +186,10 @@ public class SkinRender extends RenderTool {
             .texture(Face.SOUTH, skin, 0, 2, 2, 4, 4)
             .texture(Face.EAST,  skin, 0, 4, 2, 6, 4)
             .texture(Face.NORTH, skin, 0, 6, 2, 8, 4)
-            .build();
+            .build());
 
         /* Second layer */
-        parts[1] = Cube.from(from.add(-.5, -.5, -.5), to.add(.5, .5, .5))
+        parts[0].add(Cube.from(from.add(-.5, -.5, -.5), to.add(.5, .5, .5))
             .pivot(pivot)
             .rotation(rotation)
             .texture(Face.UP,    skin, 0, 10, 0, 12, 2)
@@ -195,7 +198,7 @@ public class SkinRender extends RenderTool {
             .texture(Face.SOUTH, skin, 0, 10, 2, 12, 4)
             .texture(Face.EAST,  skin, 0, 12, 2, 14, 4)
             .texture(Face.NORTH, skin, 0, 14, 2, 16, 4)
-            .build();
+            .build());
 
         slotsDisplay.put(Slot.HEAD, new Display(rotation, pivot, pivot.add(0, 4, 0), null));
         return this;
@@ -209,26 +212,27 @@ public class SkinRender extends RenderTool {
     private SkinRender body() {
         var from = new Vec(0, 0, 0);
         var to = new Vec(8, 12, 4);
+        parts[1].clear();
 
         /* Base layer */
-        parts[2] = Cube.from(from, to)
+        parts[1].add(Cube.from(from, to)
             .texture(Face.UP,    skin, 0, 5, 4,  7, 5)
             .texture(Face.DOWN,  skin, 2, 9, 4,  7, 5)
             .texture(Face.WEST,  skin, 0, 4, 5,  5, 8)
             .texture(Face.SOUTH, skin, 0, 5, 5,  7, 8)
             .texture(Face.EAST,  skin, 0, 7, 5,  8, 8)
             .texture(Face.NORTH, skin, 0, 8, 5, 10, 8)
-            .build();
+            .build());
 
         /* Second layer */
-        parts[3] = Cube.from(from.add(FROM_OFFSET), to.add(TO_OFFSET))
+        parts[1].add(Cube.from(from.add(FROM_OFFSET), to.add(TO_OFFSET))
             .texture(Face.UP,    skin, 0, 5, 8,  7, 9)
             .texture(Face.DOWN,  skin, 2, 9, 8,  7, 9)
             .texture(Face.WEST,  skin, 0, 4, 9,  5, 12)
             .texture(Face.SOUTH, skin, 0, 5, 9,  7, 12)
             .texture(Face.EAST,  skin, 0, 7, 9,  8, 12)
             .texture(Face.NORTH, skin, 0, 8, 9, 10, 12)
-            .build();
+            .build());
 
         return this;
     }
@@ -339,6 +343,7 @@ public class SkinRender extends RenderTool {
         var pivot    = part.pivot;
         var rA = 0;
         var rB = 1;
+        parts[part.id].clear();
 
         /* Base layer */
         var root = new Cube.Builder(position, size)
@@ -350,10 +355,10 @@ public class SkinRender extends RenderTool {
             .texture(Face.EAST,  part.uvBase(Face.EAST,  skin, 1, 1, rA, rB))
             .texture(Face.SOUTH, part.uvBase(Face.NORTH, skin, 1, 1, rA, rB))
             .build();
-        parts[part.base] = root;
+        parts[part.id].add(root);
 
         /* Second layer */
-        parts[part.layer] = new Cube.Builder(position.add(-OFFSET, 0, -OFFSET), size.add(TO_OFFSET).add(TO_OFFSET))
+        parts[part.id].add(new Cube.Builder(position.add(-OFFSET, 0, -OFFSET), size.add(TO_OFFSET).add(TO_OFFSET))
             .pivot(pivot)
             .rotation(rot)
             .texture(Face.UP,    part.uvLayer(Face.UP,    skin, 0, 1, 3, 1))
@@ -361,7 +366,7 @@ public class SkinRender extends RenderTool {
             .texture(Face.NORTH, part.uvLayer(Face.SOUTH, skin, 1, 1, rA, rB))
             .texture(Face.EAST,  part.uvLayer(Face.EAST,  skin, 1, 1, rA, rB))
             .texture(Face.SOUTH, part.uvLayer(Face.NORTH, skin, 1, 1, rA, rB))
-            .build();
+            .build());
 
         return root;
     }
@@ -398,7 +403,7 @@ public class SkinRender extends RenderTool {
 
         /* Base layer */
         var y = 2 + i * 0.25f;
-        parts[part.base + 1 + i] = new Trapezoid(
+        parts[part.id].add(new Trapezoid(
             new Vec(slim ? 3 : 4, baseHeight, baseB), // size
             position,
             rotation,
@@ -408,16 +413,16 @@ public class SkinRender extends RenderTool {
                 part.uvBase(Face.SOUTH, skin, y, .25f, rA, rB),
                 part.uvBase(Face.NORTH, skin, y, .25f, rA, rB),
                 null, null,
-                part.uvBase(Face.WEST,  skin, y, .25f, rA, rB),
-                part.uvBase(Face.EAST,  skin, y, .25f, rA, rB)
+                part.uvBase(Face.EAST,  skin, y, .25f, rB, rA),
+                part.uvBase(Face.WEST,  skin, y, .25f, rB, rA)
             }
-        );
+        ));
 
         /* Second layer */
         y = 2 + i * 0.25f;
         position = convert.apply(new Vec(0, 0, 4).sub(layerOffset).add(-OFFSET, 0, OFFSET));
         pivot = position;
-        parts[part.layer + 1 + i] = new Trapezoid(
+        parts[part.id].add(new Trapezoid(
             new Vec(slim ? 3 : 4, layerHeight, layerB).add(2*OFFSET, 0, 0), // size
             position,
             rotation,
@@ -427,10 +432,10 @@ public class SkinRender extends RenderTool {
                 part.uvLayer(Face.SOUTH, skin, y, .25f, rA, rB),
                 part.uvLayer(Face.NORTH, skin, y, .25f, rA, rB),
                 null, null,
-                part.uvLayer(Face.WEST,  skin, y, .25f, rA, rB),
-                part.uvLayer(Face.EAST,  skin, y, .25f, rA, rB)
+                part.uvLayer(Face.EAST,  skin, y, .25f, rB, rA),
+                part.uvLayer(Face.WEST,  skin, y, .25f, rB, rA)
             }
-        );
+        ));
     }
 
     /**
@@ -454,7 +459,7 @@ public class SkinRender extends RenderTool {
         var rB = 3;
 
         /* Base layer */
-        parts[part.base + 5] = new Cube.Builder(position, size)
+        parts[part.id].add(new Cube.Builder(position, size)
             .pivot(pivot)
             .rotation(rot)
             .texture(Face.UP,    part.uvBase(Face.DOWN,  skin, 0, 1,  1,  3))
@@ -462,12 +467,12 @@ public class SkinRender extends RenderTool {
             .texture(Face.NORTH, part.uvBase(Face.NORTH, skin, 3, 1, rB, rA))
             .texture(Face.EAST,  part.uvBase(Face.EAST,  skin, 3, 1, rA, rB))
             .texture(Face.SOUTH, part.uvBase(Face.SOUTH, skin, 3, 1, rB, rA))
-            .build();
+            .build());
 
         /* Second layer */
         position = convert.apply(new Vec(0, 0, 4).sub(layerOffset).add(-OFFSET, 0, OFFSET));
         pivot = position;
-        parts[part.layer + 5] = new Cube.Builder(position, size.add(new Vec(2*OFFSET, OFFSET, 2*OFFSET)))
+        parts[part.id].add(new Cube.Builder(position, size.add(new Vec(2*OFFSET, OFFSET, 2*OFFSET)))
             .pivot(pivot)
             .rotation(rot)
             .texture(Face.UP,    part.uvLayer(Face.DOWN,  skin, 0, 1,  1,  3))
@@ -475,7 +480,7 @@ public class SkinRender extends RenderTool {
             .texture(Face.NORTH, part.uvLayer(Face.NORTH, skin, 3, 1, rB, rA))
             .texture(Face.EAST,  part.uvLayer(Face.EAST,  skin, 3, 1, rA, rB))
             .texture(Face.SOUTH, part.uvLayer(Face.SOUTH, skin, 3, 1, rB, rA))
-            .build();
+            .build());
     }
 
     /**
@@ -519,25 +524,23 @@ public class SkinRender extends RenderTool {
     }
 
     private enum Member {
-        RIGHT_ARM(new Vec(0,  8, 0), new Vec(0, 12, 2),     4, 10,    40, 16, 40, 32),
-        LEFT_ARM( new Vec(8,  8, 0), new Vec(8, 12, 2),    16, 22,    32, 48, 48, 48),
-        RIGHT_LEG(new Vec(0, -4, 0), new Vec(2, 0, 2),    28, 34,     0, 16,  0, 32),
-        LEFT_LEG( new Vec(4, -4, 0), new Vec(6, 0, 2),    40, 46,    16, 48,  0, 48);
+        RIGHT_ARM(new Vec(0,  8, 0), new Vec(0, 12, 2),    2,    40, 16, 40, 32),
+        LEFT_ARM( new Vec(8,  8, 0), new Vec(8, 12, 2),    3,    32, 48, 48, 48),
+        RIGHT_LEG(new Vec(0, -4, 0), new Vec(2, 0, 2),     4,     0, 16,  0, 32),
+        LEFT_LEG( new Vec(4, -4, 0), new Vec(6, 0, 2),     5,    16, 48,  0, 48);
 
         public final Vec pos;
         public final Vec pivot;
-        public final int base;
-        public final int layer;
+        public final int id;
         private final float baseX;
         private final float baseY;
         private final float layerX;
         private final float layerY;
 
-        Member(Vec pos, Vec pivot, int base, int layer, int baseX, int baseY, int layerX, int layerY) {
+        Member(Vec pos, Vec pivot, int id, int baseX, int baseY, int layerX, int layerY) {
             this.pos = pos;
             this.pivot = pivot;
-            this.base = base;
-            this.layer = layer;
+            this.id = id;
             this.baseX = baseX / 4;
             this.baseY = baseY / 4;
             this.layerX = layerX / 4;
