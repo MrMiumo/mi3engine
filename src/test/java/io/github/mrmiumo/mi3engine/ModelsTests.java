@@ -19,6 +19,19 @@ public class ModelsTests {
         assertRenderFramed(engine);
     }
 
+
+    /**
+     * Make sure that the a cube with UVs that overflows the source
+     * image are still render correctly (negative x or y, height or
+     * width larger than the image).
+     */
+    @Test
+    public void testTextureOverflow() throws IOException {
+        var engine = getEngine("textureOverflow.json");
+        engine.camera().setRotation(25, 35, 0);
+        assertRenderFramed(engine);
+    }
+
     /**
      * Make sure that the hat follows correctly head movements.
      */

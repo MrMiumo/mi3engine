@@ -203,6 +203,7 @@ class RenderCore implements RenderEngine {
         var texture = triangle.texture();
         var texturePx = texture.pixels();
         var textureW = texture.sourceWidth();
+        var textureH = texture.sourceHeight();
         var t0 = texture.getRGBTexel(v0.u(), v0.v());
         var t1 = texture.getRGBTexel(v1.u(), v1.v());
         var t2 = texture.getRGBTexel(v2.u(), v2.v());
@@ -230,9 +231,10 @@ class RenderCore implements RenderEngine {
                 if (depth <= zBuffer[idx]) continue; // not visible compared to current zBuffer
 
                 /* Get color in texture */
-                var tx = (int)(w0 * t0[0] + w1 * t1[0] + w2 * t2[0]);
-                var ty = (int)(w0 * t0[1] + w1 * t1[1] + w2 * t2[1]);
+                var tx = RenderUtils.clamp((int)(w0 * t0[0] + w1 * t1[0] + w2 * t2[0]), 0, textureW-1);
+                var ty = RenderUtils.clamp((int)(w0 * t0[1] + w1 * t1[1] + w2 * t2[1]), 0, textureH-1);
 
+                if (ty * textureW + tx < 0) continue;
                 var argb = texturePx[ty * textureW + tx];
                 if ((argb >>> 24) == 0) continue;
                 pixels[idx] = RenderUtils.transformColor(

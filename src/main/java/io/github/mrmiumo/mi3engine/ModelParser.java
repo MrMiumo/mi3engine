@@ -96,7 +96,7 @@ public class ModelParser extends RenderTool {
             parseInternal(Path.of(path).resolve(parent.asText() + ".json"));
         } else if (elements != null) {
             /* Normal model */
-            json.get("elements").elements().forEachRemaining(element -> parseElement(element));
+            json.get("elements").elements().forEachRemaining(this::parseElement);
         }
         parseDisplay(json.get("display"));
     }
@@ -119,23 +119,22 @@ public class ModelParser extends RenderTool {
      */
     private void parseTextures(JsonNode json) {
         if (json == null) return;
-        json.properties().stream()
-            .forEach(p -> {
-                var value = p.getValue().asText().replace("minecraft:", "");
-                Function<String, TextureHolder> mapper;
-                if (value.startsWith("#")) {
-                    mapper = k -> new TextureHolder(value);
-                } else {
-                    mapper = k -> {
-                        try {
-                            return new TextureHolder(loadTexture(value));
-                        } catch (IOException e) {
-                            throw new UncheckedIOException(e);
-                        }
-                    };
-                }
-                textures.computeIfAbsent("#" + p.getKey(), mapper);
-            });
+        json.properties().forEach(p -> {
+            var value = p.getValue().asText().replace("minecraft:", "");
+            Function<String, TextureHolder> mapper;
+            if (value.startsWith("#")) {
+                mapper = k -> new TextureHolder(value);
+            } else {
+                mapper = k -> {
+                    try {
+                        return new TextureHolder(loadTexture(value));
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                };
+            }
+            textures.computeIfAbsent("#" + p.getKey(), mapper);
+        });
     }
 
     /**

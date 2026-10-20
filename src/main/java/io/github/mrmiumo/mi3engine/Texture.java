@@ -222,8 +222,8 @@ public class Texture {
         /* Handles negative sizes */
         if (w < 0) { w *= -1; x -= w; }
         if (h < 0) { h *= -1; y -= h; }
-        var uvX = (int)Math.floor(x);
-        var uvY = (int)Math.floor(y);
+        var uvX = Math.max(0, (int)Math.floor(x));
+        var uvY = Math.max(0, (int)Math.floor(y));
         var uvW = (int)Math.ceil(w);
         var uvH = (int)Math.ceil(h);
 
