@@ -102,6 +102,50 @@ public class SkinRenderTests {
             .equip(Slot.HEAD, model);
         assertRenderFramed(engine);
     }
+    
+    /**
+     * Make sure that the models are held correctly in the right hand
+     */
+    @Test
+    public void testEquipRightHandSize() throws IOException {
+        var model = getEquipment("handSize.json")
+            .setDisplay(Display.Type.THIRD_PERSON_RIGHT, new Display(null, new Vec(0, 0, -4), null))
+            ;
+        var engine = getEngine("textures/steve.png")
+            .rightArm(new Vec(-25, 0, 0), 0)
+            .equip(Slot.RIGHT_HAND, model);
+        assertRenderFramed(engine);
+    }
+
+    /**
+     * Make sure that the models are held correctly in the right hand,
+     * adjusting the rotation display setting
+     */
+    @Test
+    public void testEquipRightHandRotation() throws IOException {
+        var model = getEquipment("handSize.json")
+            .setDisplay(Display.Type.THIRD_PERSON_RIGHT, new Display(new Vec(90, 180, 180), null, null))
+            ;
+        var engine = getEngine("textures/steve.png")
+            .rightArm(new Vec(-25, 0, 0), 0)
+            .equip(Slot.RIGHT_HAND, model);
+        assertRenderFramed(engine);
+    }
+
+    /**
+     * Make sure that the models are held correctly in the right hand,
+     * adjusting the scale display setting
+     */
+    @Test
+    public void testEquipRightHandScale() throws IOException {
+        var model = getEquipment("handScale.json")
+            .setDisplay(Display.Type.THIRD_PERSON_RIGHT, new Display(null, new Vec(0, -2, 0), new Vec(0.25)))
+            ;
+        var engine = getEngine("textures/steve.png")
+            .rightArm(new Vec(-25, 0, 0), 0)
+            .equip(Slot.RIGHT_HAND, model);
+        assertRenderFramed(engine);
+    }
 
 
     private static ModelParser getEquipment(String file) throws IOException {

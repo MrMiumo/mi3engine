@@ -12,6 +12,14 @@ public record Vec(double x, double y, double z) {
     public static final Vec ZERO = new Vec(0, 0, 0);
 
     /**
+     * Creates a new 3D vector that have the same value for x, y and z
+     * @param xyz the value to set
+     */
+    public Vec(double xyz) {
+        this(xyz, xyz, xyz);
+    }
+
+    /**
      * Computes the sum of this vector with the given one.
      * @param x the x attribute of the other vector
      * @param y the y attribute of the other vector

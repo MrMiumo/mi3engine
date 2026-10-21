@@ -7,7 +7,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 import io.github.mrmiumo.mi3engine.Element.Face;
 import io.github.mrmiumo.mi3engine.ModelParser.Display;
@@ -24,13 +24,13 @@ import io.github.mrmiumo.mi3engine.ModelParser.Display.Type;
 public class SkinRender extends RenderTool {
 
     /** The offset used to compute the second layer */
-    private final double OFFSET = .25;
+    private static final double OFFSET = .25;
 
     /** The offset used to compute the second layer "from" point */
-    private final Vec FROM_OFFSET = new Vec(-OFFSET, -OFFSET, -OFFSET);
+    private static final Vec FROM_OFFSET = new Vec(-OFFSET, -OFFSET, -OFFSET);
 
     /** The offset used to compute the second layer "to" point */
-    private final Vec TO_OFFSET = new Vec(OFFSET, OFFSET, OFFSET);
+    private static final Vec TO_OFFSET = new Vec(OFFSET, OFFSET, OFFSET);
 
     /** The skin texture */
     private final Texture skin;
@@ -137,18 +137,17 @@ public class SkinRender extends RenderTool {
         }
         
         /* Display group */
-        var d = engine.getDisplay(Type.HEAD);
+        var d = engine.getDisplay(slot.type);
         dGroup.position(new Vec(-8, -8, -8));
         dGroup.pivot(Vec.ZERO);
         dGroup.rotate(new Vec(d.rotation().x(), -d.rotation().y(), d.rotation().z()));
 
         /* Slot group */
-        var scaleFactor = 0.625;
         var sGroup = new Group().add(dGroup.getElements());
-        sGroup.position(d.translation().mul(scaleFactor).add(slotDisplay.translation()));
+        sGroup.position(d.translation().mul(slotDisplay.scale()).add(slotDisplay.translation()));
         sGroup.pivot(slotDisplay.pivot());
         sGroup.rotate(new Vec(-slotDisplay.rotation().x(), 180 - slotDisplay.rotation().y(), slotDisplay.rotation().z()));
-        sGroup.scale(d.scale().mul(scaleFactor).mul(slotDisplay.scale()));
+        sGroup.scale(d.scale().mul(slotDisplay.scale()));
 
         this.engine.addElements(sGroup.getElements());
     }
@@ -200,7 +199,7 @@ public class SkinRender extends RenderTool {
             .texture(Face.NORTH, skin, 0, 14, 2, 16, 4)
             .build());
 
-        slotsDisplay.put(Slot.HEAD, new Display(rotation, pivot, pivot.add(0, 4, 0), null));
+        slotsDisplay.put(Slot.HEAD, new Display(rotation, pivot, pivot.add(0, 4, 0), new Vec(.625)));
         return this;
     }
 
@@ -389,7 +388,7 @@ public class SkinRender extends RenderTool {
      * @param layerHeight variant of the height computed for the layer
      */
     private void addBendPart(
-        Cube root, Function<Vec, Vec> convert, double angle, Member part, int i,
+        Cube root, UnaryOperator<Vec> convert, double angle, Member part, int i,
         double baseA, double baseB, Vec baseOffset, double baseHeight,
         double layerA, double layerB, Vec layerOffset, double layerHeight
     ) {
@@ -448,7 +447,7 @@ public class SkinRender extends RenderTool {
      * @param layerOffset the offset of the position due to arm bending for the layer
      * @param part the part being build (used to save element + load UV)
      */
-    private void addHand(Vec rot, double angle, Function<Vec, Vec> convert, Vec offset, Vec layerOffset, Member part) {
+    private void addHand(Vec rot, double angle, UnaryOperator<Vec> convert, Vec offset, Vec layerOffset, Member part) {
         var slim = part.slim(skin);
         var size = new Vec(slim ? 3 : 4, 4, 4);
         var partAngle = angle * (3.5 * 2 + 1);
@@ -481,6 +480,12 @@ public class SkinRender extends RenderTool {
             .texture(Face.EAST,  part.uvLayer(Face.EAST,  skin, 3, 1, rA, rB))
             .texture(Face.SOUTH, part.uvLayer(Face.SOUTH, skin, 3, 1, rB, rA))
             .build());
+
+        if (part == Member.RIGHT_ARM) {
+            slotsDisplay.put(Slot.RIGHT_HAND, new Display(rot.add(-90, 0, 0), pivot, pivot.add(-2.25, -0.25, -4.0), null));
+        } else if (part == Member.LEFT_ARM) {
+            slotsDisplay.put(Slot.LEFT_HAND, new Display(rot.add(-90, 0, 0), pivot, pivot.add(-2.25, -0.25, -4.0), null));
+        }
     }
 
     /**
@@ -492,9 +497,12 @@ public class SkinRender extends RenderTool {
         double x = Math.toRadians(zxy.x());
         double y = Math.toRadians(zxy.y());
         double z = Math.toRadians(zxy.z());
-        final double cosX = Math.cos(x), sinX = Math.sin(x);
-        final double cosY = Math.cos(y), sinY = Math.sin(y);
-        final double cosZ = Math.cos(z), sinZ = Math.sin(z);
+        final double cosX = Math.cos(x);
+        final double sinX = Math.sin(x);
+        final double cosY = Math.cos(y);
+        final double sinY = Math.sin(y);
+        final double cosZ = Math.cos(z);
+        final double sinZ = Math.sin(z);
 
         var m20 = -cosX * sinY;
         if (Math.abs(m20) < 0.999999) {
@@ -541,10 +549,10 @@ public class SkinRender extends RenderTool {
             this.pos = pos;
             this.pivot = pivot;
             this.id = id;
-            this.baseX = baseX / 4;
-            this.baseY = baseY / 4;
-            this.layerX = layerX / 4;
-            this.layerY = layerY / 4;
+            this.baseX = baseX / 4f;
+            this.baseY = baseY / 4f;
+            this.layerX = layerX / 4f;
+            this.layerY = layerY / 4f;
         }
 
         public boolean leg() {
@@ -622,7 +630,7 @@ public class SkinRender extends RenderTool {
                     w  =  slim ? .75f : 1;
                     r = rB;
                 }
-            };
+            }
 
             /* Texture creation */
             return skin.uv(tx, ty + y, w,  h, r);
@@ -634,9 +642,20 @@ public class SkinRender extends RenderTool {
      * render.
      */
     public enum Slot {
-        /** The player head slot (amor head) */
-        HEAD
+        /** The player head slot (armor head) */
+        HEAD(Type.HEAD),
+        /** The player left hand */
+        LEFT_HAND(Type.THIRD_PERSON_LEFT),
+        /** The player right hand */
+        RIGHT_HAND(Type.THIRD_PERSON_RIGHT);
+
+        public final Type type;
+
+        Slot(Type type) {
+            this.type = type;
+        }
+
         
-        /*, LEFT_ARM, RIGHT_ARM, CHESTPLATE, LEGS, FOOTS */;
+        /*, CHESTPLATE, LEGS, FOOTS */
     }
 }
