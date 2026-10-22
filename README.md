@@ -9,7 +9,6 @@
   - [Model Parser Tool](#modelParser)
   - [Skin Render Tool](#skinRender)
   - [Auto Framer Tool](#autoFramer)
-- [Future](#future)
 
 ## Performances
 <a name="performances"></a>
@@ -22,7 +21,7 @@ This engine is written in Java 17 (maybe compatible with Java 15 but not tested)
 <dependency>
     <groupId>io.github.mrmiumo</groupId>
     <artifactId>mi3engine</artifactId>
-    <version>1.1.2</version>
+    <version>1.1.3</version>
 </dependency>
 ```
 Once imported in your project, you can use it by yourself (creating and adding cubes one by one) or using tools.
@@ -100,13 +99,13 @@ This tools enables to create skin render with custom poses. This module is not p
 |-----------------|---------------------------------------|:-----------------:|
 | Basic Poses     | Move head, arms and legs              | `v1.1.0`          |
 | Arm bending     | Curvate each arm at elbows            | `v1.1.0`          |
-| Leg bending     | Curvate each leg at knees             | :v1.1.3:          |
+| Leg bending     | Curvate each leg at knees             | `v1.1.3`          |
 | Second layer    | Upper skin layer is rendered          | `v1.1.0`          |
 | 3D Second layer | Improved second layer with true depth | :x:               |
 | Slim skin       | 'Alex' skin with 3px large arms       | `v1.1.1`          |
 | Hat             | Enable to add model on head           | `v1.1.1`          |
-| Item holding    | Enable to add model in hands          | :x:               |
-| Armor           | Equip armor pieces on the player      | *Not planned yet* |
+| Item holding    | Enable to add model in hands          | `v1.1.3`          |
+| Armor           | Equip armor pieces on the player      | :x:               |
 
 Here is an example of usage:
 
